@@ -104,6 +104,7 @@
 
   rtwoptions(7).prompt         = 'Zip utility:';
   rtwoptions(7).type           = 'Edit';
+  rtwoptions(7).enable         = 'off';
 if ispc
   rtwoptions(7).default        = 'C:/Program Files/7-Zip/7z.exe';
 else
@@ -116,6 +117,7 @@ end
 
   rtwoptions(8).prompt         = 'Zip options:';
   rtwoptions(8).type           = 'Edit';
+  rtwoptions(8).enable         = 'off';
 if ispc
   rtwoptions(8).default        = 'a -r -tzip';
 else
