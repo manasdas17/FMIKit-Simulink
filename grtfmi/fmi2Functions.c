@@ -4,6 +4,8 @@
 
 #include <float.h>  /* for DBL_EPSILON */
 #include <string.h> /* for strcpy(), strncmp() */
+#include <stdarg.h> /* for va_list */
+#include <stdio.h>  /* for vsnprintf(), vprintf() */
 
 #include "fmiwrapper.inc"
 
@@ -14,11 +16,6 @@ const char *RT_MEMORY_ALLOCATION_ERROR = "memory allocation error";
 /* Path to the resources directory of the extracted FMU */
 const char *FMU_RESOURCES_DIR = NULL;
 
-
-int rtPrintfNoOp(const char *fmt, ...) {
-	return 0;  /* do nothing */
-}
-
 typedef struct {
 	RT_MDL_TYPE *S;
 	const char *instanceName;
@@ -26,6 +23,26 @@ typedef struct {
 	fmi2ComponentEnvironment componentEnvironment;
 	ModelVariable modelVariables[N_MODEL_VARIABLES];
 } ModelInstance;
+
+ModelInstance *currentInstance = NULL;
+
+int rtPrintfNoOp(const char *fmt, ...) {
+
+	va_list args;
+	va_start(args, fmt);
+
+	if (currentInstance && currentInstance->logger) {
+		char message[1024] = "";
+		size_t len = vsnprintf(message, 1024, fmt, args);
+		currentInstance->logger(currentInstance->componentEnvironment, currentInstance->instanceName, fmi2OK, "info", message);
+	} else {
+		vprintf(fmt, args);
+	}
+
+	va_end(args);
+
+	return 0;
+}
 
 static void setResourcePath(const char *uri) {
 
@@ -99,6 +116,8 @@ fmi2Component fmi2Instantiate(fmi2String instanceName,
 	instance->logger = functions->logger;
 	instance->componentEnvironment = functions->componentEnvironment;
 
+	currentInstance = instance;
+
 #ifdef REUSABLE_FUNCTION
 	instance->S = MODEL();
 	MODEL_INITIALIZE(instance->S);
@@ -141,6 +160,7 @@ fmi2Status fmi2ExitInitializationMode(fmi2Component c) {
 fmi2Status fmi2Terminate(fmi2Component c) {
 
 	ModelInstance *instance = (ModelInstance *)c;
+	currentInstance = instance;
 
 #ifdef REUSABLE_FUNCTION
 	MODEL_TERMINATE(instance->S);
@@ -156,6 +176,7 @@ fmi2Status fmi2Terminate(fmi2Component c) {
 fmi2Status fmi2Reset(fmi2Component c) {
 
     ModelInstance *instance = (ModelInstance *)c;
+	currentInstance = instance;
     
 #ifdef REUSABLE_FUNCTION
     if (instance->S) {
@@ -444,6 +465,7 @@ fmi2Status fmi2DoStep(fmi2Component c,
 	fmi2Boolean   noSetFMUStatePriorToCurrentPoint) {
 
 	ModelInstance *instance = (ModelInstance *)c;
+	currentInstance = instance;
 	const char *errorStatus;
 
 	time_T tNext = currentCommunicationPoint + communicationStepSize;
