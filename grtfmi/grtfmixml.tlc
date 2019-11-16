@@ -191,6 +191,35 @@ static void initializeModelVariables(RT_MDL_TYPE* S, ModelVariable modelVariable
       %endforeach
     %endif
   %endwith
+  %% Block Outputs
+  %selectfile xmlfile
+
+  <!-- Block Outputs -->
+  %with ::CompiledModel.BlockOutputs
+    %foreach blockoutputid = NumGlobalBlockOutputs
+      %assign blockoutput = GlobalBlockOutput[blockoutputid]
+      %if (ISFIELD(blockoutput, "IsRemovedInIR") && blockoutput.IsRemovedInIR)
+        %continue
+      %endif
+      %assign dataTypeName = SLibGetRecordDataTypeName(blockoutput, "")
+      %assign fmiType      = GetFMIType(dataTypeName)
+      %assign dtypeID      = LibGetRecordDataTypeId(blockoutput)
+      %assign width        = LibGetRecordWidth(blockoutput)
+      %assign identifier   = LibGetRecordIdentifier(blockoutput)
+      %if ISEMPTY(fmiType)
+        %continue
+      %endif
+      %selectfile incfile
+    modelVariables[%<vr-1>].dtypeID = %<dtypeID>;
+    modelVariables[%<vr-1>].size    = 0;
+    modelVariables[%<vr-1>].address = &(rtmGetBlockIO(S)->%<identifier>);
+      %selectfile xmlfile
+    <ScalarVariable name="%<identifier>" valueReference="%<vr>">
+      <%<fmiType>/>
+    </ScalarVariable>
+      %assign vr = vr + 1
+    %endforeach
+  %endwith
   %selectfile incfile
 }
 
