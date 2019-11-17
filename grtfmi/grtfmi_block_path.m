@@ -1,7 +1,5 @@
 function variable_name = grtfmi_block_path(p)
 
-disp(p)
-
 segments = {};
 
 i = 1;
