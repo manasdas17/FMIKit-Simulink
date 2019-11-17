@@ -359,3 +359,32 @@
   %endwith
   %return vr + 1
 %endfunction
+
+%function BlockOutputFMI2(blockoutput, vr) Output
+  %if (ISFIELD(blockoutput, "IsRemovedInIR") && blockoutput.IsRemovedInIR)
+    %return vr
+  %endif
+  %assign dataTypeName = SLibGetRecordDataTypeName(blockoutput, "")
+  %assign fmiType      = GetFMIType(dataTypeName)
+  %assign dtypeID      = LibGetRecordDataTypeId(blockoutput)
+  %assign width        = LibGetRecordWidth(blockoutput)
+  %assign identifier   = LibGetRecordIdentifier(blockoutput)
+  %assign variableName = identifier
+  %if ISEMPTY(fmiType)
+    %return vr
+  %endif
+  %if (ISFIELD(blockoutput, "GrSrc") && blockoutput.GrSrc[1] != -1)
+    %assign varPath = LibGetFormattedBlockPath(SLibGrBlock(blockoutput.GrSrc))
+    %assign varPath = FEVAL("grtfmi_block_path", varPath)
+    %assign variableName = varPath + "." + variableName
+  %endif
+  %selectfile incfile
+    modelVariables[%<vr-1>].dtypeID = %<dtypeID>;
+    modelVariables[%<vr-1>].size    = 0;
+    modelVariables[%<vr-1>].address = &(rtmGetBlockIO(S)->%<identifier>);
+  %selectfile xmlfile
+    <ScalarVariable name="%<variableName>" valueReference="%<vr>">
+      <%<fmiType>/>
+    </ScalarVariable>
+  %return vr + 1
+%endfunction

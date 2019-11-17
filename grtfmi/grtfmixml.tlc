@@ -192,40 +192,20 @@ static void initializeModelVariables(RT_MDL_TYPE* S, ModelVariable modelVariable
     %endif
   %endwith
   %% Block Outputs
-  %selectfile xmlfile
-
-  <!-- Block Outputs -->
   %with ::CompiledModel.BlockOutputs
-    %foreach blockoutputid = NumGlobalBlockOutputs
-      %assign blockoutput = GlobalBlockOutput[blockoutputid]
-      %if (ISFIELD(blockoutput, "IsRemovedInIR") && blockoutput.IsRemovedInIR)
-        %continue
-      %endif
-      %assign dataTypeName = SLibGetRecordDataTypeName(blockoutput, "")
-      %assign fmiType      = GetFMIType(dataTypeName)
-      %assign dtypeID      = LibGetRecordDataTypeId(blockoutput)
-      %assign width        = LibGetRecordWidth(blockoutput)
-      %assign identifier   = LibGetRecordIdentifier(blockoutput)
-      %assign variableName = identifier
-      %if ISEMPTY(fmiType)
-        %continue
-      %endif
-      %if (ISFIELD(blockoutput, "GrSrc") && blockoutput.GrSrc[1] != -1)
-        %assign varPath = LibGetFormattedBlockPath(SLibGrBlock(blockoutput.GrSrc))
-        %assign varPath = FEVAL("grtfmi_block_path", varPath)
-        %assign variableName = varPath + "." + variableName
-      %endif
-      %selectfile incfile
-    modelVariables[%<vr-1>].dtypeID = %<dtypeID>;
-    modelVariables[%<vr-1>].size    = 0;
-    modelVariables[%<vr-1>].address = &(rtmGetBlockIO(S)->%<identifier>);
+    %if NumGlobalBlockOutputs > 0
       %selectfile xmlfile
-    <ScalarVariable name="%<variableName>" valueReference="%<vr>">
-      <%<fmiType>/>
-    </ScalarVariable>
-      %assign vr = vr + 1
-    %endforeach
+
+    <!-- Block Outputs -->
+      %foreach blockoutputid = NumGlobalBlockOutputs
+        %assign blockoutput = GlobalBlockOutput[blockoutputid]
+        %if FMIVersion == "2"
+          %assign vr = BlockOutputFMI2(blockoutput, vr)
+        %endif
+      %endforeach
+    %endif
   %endwith
+  %% close fmiwrapper.inc
   %selectfile incfile
 }
 
