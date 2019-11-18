@@ -253,7 +253,8 @@
   %assign attributes   = MinMaxAttributes(port, fmiType)
   %%
   %if ISEMPTY(fmiType)
-    %assign variables = FEVAL("grtfmi_bus_variables", port.BlockName)
+    %assign dataTypeStr = FEVAL("get_param", port.BlockName, "OutDataTypeStr")
+    %assign variables = FEVAL("grtfmi_bus_variables", dataTypeStr)
     %foreach index = SIZE(variables, 0)
       %assign variable = variables[index]
       %assign fmiType = "Real"
@@ -326,7 +327,8 @@
     %assign attributes   = MinMaxAttributes(outp, fmiType)
     %%
     %if ISEMPTY(fmiType)
-      %assign variables = FEVAL("grtfmi_bus_variables", outp.BlockName)
+      %assign dataTypeStr = FEVAL("get_param", outp.BlockName, "OutDataTypeStr")
+      %assign variables = FEVAL("grtfmi_bus_variables", dataTypeStr)
       %foreach index = SIZE(variables, 0)
         %assign variable = variables[index]
         %assign fmiType = "Real"

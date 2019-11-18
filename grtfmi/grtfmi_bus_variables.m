@@ -1,8 +1,8 @@
-function variables = grtfmi_bus_variables(sys)
+function variables = grtfmi_bus_variables(dataType)
 
-bus_name = get_param(sys, 'OutDataTypeStr');
+% bus_name = get_param(sys, 'OutDataTypeStr');
 
-bus_name = bus_name(numel('Bus: ')+1:end);
+bus_name = dataType(numel('Bus: ')+1:end);
 
 bus = evalin('base', bus_name);
 
@@ -12,11 +12,20 @@ for i = 1:numel(bus.Elements)
   
   element = bus.Elements(i);
   
+  if strncmp(element.DataType, 'Bus: ', numel('Bus: '))
+    subVars = grtfmi_bus_variables(element.DataType);
+    for j = 1:numel(subVars)
+      subVar = subVars{j};
+      variables{end+1} = {[element.Name '.' subVar{1}], subVar{2}};
+    end
+
+  end
+  
   switch element.DataType
     case 'double'
-      dtypeID = 'SS_DOUBLE';
+      dtypeID = 0;
     case 'single'
-      dtypeID = 'SS_SINGLE';
+      dtypeID = 1;
     otherwise
       continue
   end
