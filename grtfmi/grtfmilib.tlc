@@ -251,6 +251,25 @@
   %assign fmiType      = GetFMIType(dataTypeName)
   %assign description  = DescriptionAttribute(port)
   %assign attributes   = MinMaxAttributes(port, fmiType)
+  %%
+  %if ISEMPTY(fmiType)
+    %assign variables = FEVAL("grtfmi_bus_variables", port.BlockName)
+    %foreach index = SIZE(variables, 0)
+      %assign variable = variables[index]
+      %assign fmiType = "Real"
+      %selectfile incfile
+    modelVariables[%<vr-1>].dtypeID = %<variable[1]>;
+    modelVariables[%<vr-1>].size    = 0;
+    modelVariables[%<vr-1>].address = &(rtmGetU(S)->%<port.Identifier>.%<variable[0]>);
+      %selectfile xmlfile
+    <ScalarVariable name="%<port.Identifier>.%<variable[0]>" valueReference="%<vr>" causality="input">
+      <%<fmiType> start="0"/>
+    </ScalarVariable>
+      %assign vr = vr + 1
+    %endforeach
+    %return vr
+  %endif
+  %%
   %foreach index = width
     %if width == 1
       %assign dataName     = "%<port.Identifier>"
@@ -305,6 +324,25 @@
     %assign dtypeID      = LibGetRecordDataTypeId(outp)
     %assign width        = LibGetRecordWidth(outp)
     %assign attributes   = MinMaxAttributes(outp, fmiType)
+    %%
+    %if ISEMPTY(fmiType)
+      %assign variables = FEVAL("grtfmi_bus_variables", outp.BlockName)
+      %foreach index = SIZE(variables, 0)
+        %assign variable = variables[index]
+        %assign fmiType = "Real"
+        %selectfile incfile
+    modelVariables[%<vr-1>].dtypeID = %<variable[1]>;
+    modelVariables[%<vr-1>].size    = 0;
+    modelVariables[%<vr-1>].address = &(rtmGetY(S)->%<Identifier>.%<variable[0]>);
+        %selectfile xmlfile
+    <ScalarVariable name="%<Identifier>.%<variable[0]>" valueReference="%<vr>" causality="output">
+      <%<fmiType> start="0"/>
+    </ScalarVariable>
+        %assign vr = vr + 1
+      %endforeach
+      %return vr
+    %endif
+    %%
     %if fmiType == "Real"
       %assign variability = "continuous"
     %else
