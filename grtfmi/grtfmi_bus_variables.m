@@ -1,12 +1,15 @@
 function variables = grtfmi_bus_variables(dataType)
 
-% bus_name = get_param(sys, 'OutDataTypeStr');
+variables = {};
+
+% check if dataType starts with "Bus: "
+if ~strncmp(dataType, 'Bus: ', numel('Bus: '))
+  return
+end
 
 bus_name = dataType(numel('Bus: ')+1:end);
 
 bus = evalin('base', bus_name);
-
-variables = {};
 
 for i = 1:numel(bus.Elements)
   
@@ -23,28 +26,29 @@ for i = 1:numel(bus.Elements)
   
   switch element.DataType
     case 'double'
-      dtypeID = 0;
+      dtypeID = 0;  % SS_DOUBLE
     case 'single'
-      dtypeID = 1;
+      dtypeID = 1;  % SS_SINGLE
+    case 'int8'
+      dtypeID = 2;  % SS_INT8
+    case 'uint8'
+      dtypeID = 3;  % SS_UINT8
+    case 'int16'
+      dtypeID = 4;  % SS_INT16
+    case 'uin16'
+      dtypeID = 5;  % SS_UINT16
+    case 'int32'
+      dtypeID = 6;  % SS_INT32
+    case 'uint32'
+      dtypeID = 7;  % SS_UINT32
+    case 'boolean'
+      dtypeID = 8;  % SS_BOOLEAN
     otherwise
       continue
   end
   
-%     SS_DOUBLE  =  0,    /* real_T    */
-%     SS_SINGLE  =  1,    /* real32_T  */
-%     SS_INT8    =  2,    /* int8_T    */
-%     SS_UINT8   =  3,    /* uint8_T   */
-%     SS_INT16   =  4,    /* int16_T   */
-%     SS_UINT16  =  5,    /* uint16_T  */
-%     SS_INT32   =  6,    /* int32_T   */
-%     SS_UINT32  =  7,    /* uint32_T  */
-%     SS_BOOLEAN =  8     /* boolean_T */
-  
   variables{end+1} = { element.Name, dtypeID };
-%   variables{end+1} = { ...
-%     bus.Elements(i).Name, ...
-%     bus.Elements(i).DataType, ...
-%   };
+
 end
 
 end
