@@ -138,7 +138,7 @@ static void initializeModelVariables(RT_MDL_TYPE* S, ModelVariable modelVariable
   %% Parameters
   %selectfile xmlfile
 
-  <!-- Parameters -->
+    <!-- Parameters -->
   %with ModelParameters
     %foreach paramid = NumParameters
       %assign param = Parameter[paramid]
