@@ -116,8 +116,17 @@
 
 %function OutputParameterFMI2(param, vr)
   %assign variableName = param.Identifier
-  %assign dataName     = "&(rtmGetDefaultParam(S)->%<param.Identifier>"
-  %return VariableFMI2(param, variableName, dataName, vr, " causality=\"parameter\" variability=\"tunable\"", "")
+  %assign sigSrc       = param.OwnerSysIdx
+  %if sigSrc[1] < 0
+    %assign identifier = param.Identifier
+  %else
+    %assign varGroupIdx = FcnSysVarGroupIndex(::CompiledModel.System[sigSrc[0]], "Parameter", sigSrc[1]) 
+    %assign identifier = ::CompiledModel.VarGroups.VarGroup[varGroupIdx].Name + "." + param.Identifier
+    %% QUICKFIX:
+    %assign variableName = ::CompiledModel.VarGroups.VarGroup[varGroupIdx].Name + "." + variableName
+  %endif
+  %assign dataName     = "&(rtmGetDefaultParam(S)->%<identifier>"
+  %return VariableFMI2(param, identifier, dataName, vr, " causality=\"parameter\" variability=\"tunable\"", "")
 %endfunction
 
 %function OutputParameterFMI3(param, vr)
