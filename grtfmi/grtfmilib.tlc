@@ -346,19 +346,9 @@
 %endfunction
 
 %function BlockOutputFMI2(blockoutput, vr) Output
-  %assign identifier   = LibGetRecordIdentifier(blockoutput)
-  %assign variableName = identifier
-  %assign dataName     = "&(rtmGetBlockIO(S)->%<identifier>"
-  %return VariableFMI2(blockoutput, variableName, dataName, vr, "", "")
-  %% %selectfile xmlfile
-  %%  <!-- %<LibGetRecordIdentifier(blockoutput)> --> 
   %if (ISFIELD(blockoutput, "IsRemovedInIR") && blockoutput.IsRemovedInIR)
     %return vr
   %endif
-  %assign dataTypeName = SLibGetRecordDataTypeName(blockoutput, "")
-  %assign fmiType      = GetFMIType(dataTypeName)
-  %assign dtypeID      = LibGetRecordDataTypeId(blockoutput)
-  %assign width        = LibGetRecordWidth(blockoutput)
   %assign identifier   = LibGetRecordIdentifier(blockoutput)
   %assign variableName = identifier
   %if (ISFIELD(blockoutput, "GrSrc") && blockoutput.GrSrc[1] != -1)
@@ -366,19 +356,6 @@
     %assign varPath = FEVAL("grtfmi_block_path", varPath)
     %assign variableName = varPath + "." + variableName
   %endif
-  %if ISEMPTY(fmiType)
-    %assign dataType = ::CompiledModel.DataTypes.DataType[dtypeID]
-    %if !ISFIELD(dataType, "Elements")
-      %return vr
-    %endif
-    %foreach elementIdx = dataType.NumElements
-      %assign element = dataType.Elements[elementIdx]
-      %assign dataName = "&(rtmGetBlockIO(S)->%<identifier>.%<element.Name>"
-      %assign vr = VariableFMI2(element, variableName, dataName, vr, "", "")
-    %endforeach
-  %else
-%%    %assign dataName = "&(rtmGetBlockIO(S)->%<identifier>"
-%%    %assign vr = VariableFMI2(blockoutput, variableName, dataName, vr)
-  %endif
-  %return vr
+  %assign dataName     = "&(rtmGetBlockIO(S)->%<identifier>"
+  %return VariableFMI2(blockoutput, variableName, dataName, vr, "", "")
 %endfunction
