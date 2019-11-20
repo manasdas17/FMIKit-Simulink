@@ -244,13 +244,6 @@
 %endfunction
 
 %function ExternalInputFMI2(port, vr)
-  %assign dtypeID      = LibGetRecordDataTypeId(port)
-  %assign dataTypeName = SLibGetRecordDataTypeName(port, "")
-  %assign dims         = LibGetRecordDimensions(port)
-  %assign width        = LibGetRecordWidth(port)
-  %assign fmiType      = GetFMIType(dataTypeName)
-  %assign description  = DescriptionAttribute(port)
-  %assign attributes   = MinMaxAttributes(port, fmiType)
   %assign variableName = port.Identifier
   %assign dataName     = "&(rtmGetU(S)->%<port.Identifier>"
   %return VariableFMI2(port, variableName, dataName, vr, " causality=\"input\"", " start=\"0\"")
@@ -281,17 +274,9 @@
 %function ExternalOutputFMI2(port, vr) Output
   %assign sysid        = port.Block[0]
   %assign blkid        = port.Block[1]
-  %assign outportBlock = System[sysid].Block[blkid]
-  %assign description  = DescriptionAttribute(port)
-  %assign dtypeID      = LibGetRecordDataTypeId(port)
-  %assign dataTypeName = SLibGetRecordDataTypeName(port, "")
-  %assign dims         = LibGetRecordDimensions(port)
-  %assign width        = LibGetRecordWidth(port)
-  %assign fmiType      = GetFMIType(dataTypeName)
-  %assign description  = DescriptionAttribute(port)
-  %assign attributes   = MinMaxAttributes(port, fmiType)
-  %assign variableName = outportBlock.Identifier
-  %assign dataName     = "&(rtmGetY(S)->%<outportBlock.Identifier>"
+  %assign block        = System[sysid].Block[blkid]
+  %assign variableName = block.Identifier
+  %assign dataName     = "&(rtmGetY(S)->%<block.Identifier>"
   %return VariableFMI2(port, variableName, dataName, vr, " causality=\"output\"", "")
 %endfunction
 
