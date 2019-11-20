@@ -313,6 +313,12 @@
   %assign dtypeID      = LibGetRecordDataTypeId(record)
   %assign dims         = LibGetRecordDimensions(record)
   %assign width        = LibGetRecordWidth(record)
+  %if ISFIELD(record, "UnitIdx")
+    %assign unit = Units.Unit[record.UnitIdx].ASCIIEscapedUnitExpr
+    %if !ISEMPTY(unit)
+      %assign typeAttr = "%<typeAttr> unit=\"%<unit>\""
+    %endif
+  %endif
   %if ISEMPTY(fmiType)
     %assign dataType = ::CompiledModel.DataTypes.DataType[dtypeID]
     %if !ISFIELD(dataType, "Elements")
