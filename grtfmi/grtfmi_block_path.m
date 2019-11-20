@@ -27,6 +27,9 @@ for i = 2:numel(segments)
   
   segment = strrep(segment, '//', '/');
   segment = strrep(segment, '&', '&amp;');
+  segment = strrep(segment, hex2dec('D'), ' '); % carriage return
+  segment = strrep(segment, hex2dec('A'), ' '); % line feed
+  segment = strrep(segment, hex2dec('9'), ' '); % tab
   
   % escape non-ASCII characters
   nonascii = segment(segment > 127);
