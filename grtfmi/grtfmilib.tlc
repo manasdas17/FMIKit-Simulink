@@ -319,6 +319,12 @@
       %assign typeAttr = "%<typeAttr> unit=\"%<unit>\""
     %endif
   %endif
+  %if ISFIELD(record, "BlockName")
+    %assign description = FEVAL("get_param", "%<record.BlockName>", "Description")
+    %if !ISEMPTY(description)
+      %assign variableAttr = "%<variableAttr> description=\"%<description>\""
+    %endif
+  %endif
   %if ISEMPTY(fmiType)
     %assign dataType = ::CompiledModel.DataTypes.DataType[dtypeID]
     %if !ISFIELD(dataType, "Elements")
