@@ -341,7 +341,7 @@
   %if (ISFIELD(blockoutput, "GrSrc") && blockoutput.GrSrc[1] != -1)
     %assign varPath = LibGetFormattedBlockPath(SLibGrBlock(blockoutput.GrSrc))
     %assign varPath = FEVAL("grtfmi_block_path", varPath)
-    %assign variableName = varPath + "." + variableName
+    %assign variableName = "%<varPath>.%<variableName>"
   %endif
   %assign dataName     = "&(rtmGetBlockIO(S)->%<identifier>"
   %return VariableFMI2(blockoutput, variableName, dataName, vr, "", "")
