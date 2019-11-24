@@ -65,7 +65,8 @@
     <SourceFileSet>
       <SourceFile name="fmi3Functions.c"/>
     %foreach i = SIZE(sourceFiles, 1)
-      <SourceFile name="%<sourceFiles[i]>"/>
+      %assign sourceFile = FEVAL("grtfmi_filename", sourceFiles[i])
+      <SourceFile name="%<sourceFile>"/>
     %endforeach
     </SourceFileSet>
   </BuildConfiguration>
