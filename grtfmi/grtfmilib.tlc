@@ -370,18 +370,17 @@
   %if nRows == 0 || nCols == 0
     %return vr
   %endif
-  %if sigSrc[1] < 0
-    %assign identifier = record.Identifier
-  %else
-    %assign varGroupIdx = FcnSysVarGroupIndex(::CompiledModel.System[sigSrc[0]], "Parameter", sigSrc[1]) 
-    %assign identifier = ::CompiledModel.VarGroups.VarGroup[varGroupIdx].Name + "." + record.Identifier
-  %endif
   %selectfile xmlfile
-  %assign startValue = FEVAL("grtfmi_start_value", record.Value)
-  %if width == 1
-    <%<fmiType> name="%<variableName>" valueReference="%<vr>" causality="parameter" variability="tunable" start="%<startValue>"/>
+  %if ISFIELD(record, "Value")
+    %assign startValue = FEVAL("grtfmi_start_value", record.Value)
+    %assign startAttr = " start=\"%<startValue>\""
   %else
-    <%<fmiType> name="%<variableName>" valueReference="%<vr>" causality="parameter" variability="tunable" start="%<startValue>">
+    %assign startAttr = ""
+  %endif
+  %if width == 1
+    <%<fmiType> name="%<variableName>" valueReference="%<vr>"%<variableAttr>%<startAttr>/>
+  %else
+    <%<fmiType> name="%<variableName>" valueReference="%<vr>"%<variableAttr>%<startAttr>>
     %foreach dimidx = SIZE(dims, 1)
       <Dimension start="%<dims[dimidx]>"/>
     %endforeach
