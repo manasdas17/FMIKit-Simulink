@@ -3,8 +3,14 @@
 %%  model description (XML) generation.
 %%
 
-%function GetFMIType(typeName) void
-  %switch typeName
+%function GetFMIType(record) void
+  %assign dataTypeId   = LibGetRecordDataTypeId(record)
+  %assign dataType     = ::CompiledModel.DataTypes.DataType[dataTypeId]
+  %assign dataTypeName = SLibGetRecordDataTypeName(record, "")
+  %if ISFIELD(dataType, "Enumeration")
+    %return "Enumeration"
+  %endif
+  %switch dataTypeName
     %case "real_T"
     %case "real32_T"
       %return "Real"
@@ -241,7 +247,7 @@
 
 %function VariableFMI2(record, variableName, dataName, vr, variableAttr, typeAttr) Output
   %assign dataTypeName = SLibGetRecordDataTypeName(record, "")
-  %assign fmiType      = GetFMIType(dataTypeName)
+  %assign fmiType      = GetFMIType(record)
   %assign dtypeID      = LibGetRecordDataTypeId(record)
   %assign dims         = LibGetRecordDimensions(record)
   %assign width        = LibGetRecordWidth(record)
@@ -261,13 +267,15 @@
   %endif
   %if ISEMPTY(fmiType)
     %assign dataType = ::CompiledModel.DataTypes.DataType[dtypeID]
-    %if !ISFIELD(dataType, "Elements")
+    %if ISFIELD(dataType, "Elements")
+      %% Bus
+      %foreach elementIdx = dataType.NumElements
+        %assign element = dataType.Elements[elementIdx]
+        %assign vr = VariableFMI2(element, "%<variableName>.%<element.Name>", "%<dataName>.%<element.Name>", vr, variableAttr, typeAttr)
+      %endforeach
+    %else
       %return vr
     %endif
-    %foreach elementIdx = dataType.NumElements
-      %assign element = dataType.Elements[elementIdx]
-      %assign vr = VariableFMI2(element, "%<variableName>.%<element.Name>", "%<dataName>.%<element.Name>", vr, variableAttr, typeAttr)
-    %endforeach
   %else
     %assign index = 0
     %foreach colid = nCols
@@ -315,6 +323,10 @@
         %assign startAttr = " start=\"%<startValue>\""
       %else
         %assign startAttr = ""
+      %endif
+      %if fmiType == "Enumeration"
+        %assign dtypeID = 6
+        %assign typeAttr = " declaredType=\"%<dataType.DTName>\"%<typeAttr>"
       %endif
       %selectfile incfile
     modelVariables[%<vr-1>].dtypeID = %<dtypeID>;
