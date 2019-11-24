@@ -228,11 +228,16 @@ static void initializeModelVariables(RT_MDL_TYPE* S, ModelVariable modelVariable
 
     <!-- Outputs -->
       %foreach portid = NumExternalOutputs
-        %assign outp = ExternalOutput[portid]
+        %assign port         = ExternalOutput[portid]
+        %assign sysid        = port.Block[0]
+        %assign blkid        = port.Block[1]
+        %assign block        = System[sysid].Block[blkid]
+        %assign variableName = block.Identifier
+        %assign dataName     = "&(rtmGetY(S)->%<block.Identifier>"
         %if FMIVersion == "2"
-          %assign nextVR = ExternalOutputFMI2(outp, vr)   
+          %assign nextVR = VariableFMI2(port, variableName, dataName, vr, " causality=\"output\"", "")
         %else
-          %assign nextVR = ExternalOutputFMI3(outp, vr)
+          %assign nextVR = VariableFMI3(port, variableName, dataName, vr, " causality=\"output\"", "")
         %endif
         %foreach vrIdx = nextVR - vr
           %assign outputIndices = outputIndices + (vr + vrIdx)
