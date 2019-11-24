@@ -113,8 +113,8 @@
     </Enumeration>
         %endif
       %endforeach
-    %endif
   </TypeDefinitions>
+    %endif
   %endif
 
   <DefaultExperiment
