@@ -74,9 +74,10 @@
       %endif
       %if ISFIELD(port, "UnitIdx")
         %assign unit = Units.Unit[port.UnitIdx].ASCIIEscapedUnitExpr
-        %if !ISEMPTY(unit)
-          %assign attributes = "%<attributes> unit=\"%<unit>\""
-        %endif
+        %assign attributes = "%<attributes> unit=\"%<unit>\""
+      %elseif ISFIELD(port, "BlockName")
+        %assign unit = FEVAL("get_param", "%<port.BlockName>", "Unit")
+        %assign attributes = "%<attributes> unit=\"%<unit>\""
       %endif
   %endswitch
   %return attributes
@@ -102,12 +103,8 @@
   %assign width        = LibGetRecordWidth(record)
   %assign nRows        = dims[0]
   %assign nCols        = SIZE(dims, 1) == 1 ? 1 : dims[1]
-  %if ISFIELD(record, "UnitIdx")
-    %assign unit = Units.Unit[record.UnitIdx].ASCIIEscapedUnitExpr
-    %if !ISEMPTY(unit)
-      %assign typeAttr = "%<typeAttr> unit=\"%<unit>\""
-    %endif
-  %endif
+  %assign minMaxAttr   = MinMaxAttributes(record, fmiType)
+  %assign typeAttr     = "%<typeAttr>%<minMaxAttr>"
   %if ISFIELD(record, "BlockName")
     %assign description = FEVAL("get_param", "%<record.BlockName>", "Description")
     %if !ISEMPTY(description)
@@ -169,9 +166,7 @@
           %default
             %break
         %endswitch
-        %assign startAttr = " start=\"%<startValue>\""
-      %else
-        %assign startAttr = ""
+        %assign typeAttr = " start=\"%<startValue>\"%<typeAttr>"
       %endif
       %if fmiType == "Enumeration"
         %assign dtypeID = 6
@@ -183,7 +178,7 @@
     modelVariables[%<vr-1>].address = %<dataName>%<dataSubs>);
       %selectfile xmlfile
     <ScalarVariable name="%<variableName>%<variableSubs>" valueReference="%<vr>"%<variableAttr>>
-      <%<fmiType>%<startAttr>%<typeAttr>/>
+      <%<fmiType>%<typeAttr>/>
     </ScalarVariable>
       %assign index = index + 1
       %assign vr = vr + 1
@@ -201,12 +196,8 @@
   %assign width        = LibGetRecordWidth(record)
   %assign nRows        = dims[0]
   %assign nCols        = SIZE(dims, 1) == 1 ? 1 : dims[1]
-  %if ISFIELD(record, "UnitIdx")
-    %assign unit = Units.Unit[record.UnitIdx].ASCIIEscapedUnitExpr
-    %if !ISEMPTY(unit)
-      %assign typeAttr = "%<typeAttr> unit=\"%<unit>\""
-    %endif
-  %endif
+  %assign minMaxAttr   = MinMaxAttributes(record, fmiType)
+  %assign variableAttr = "%<variableAttr>%<minMaxAttr>"
   %if ISFIELD(record, "BlockName")
     %assign description = FEVAL("get_param", "%<record.BlockName>", "Description")
     %if !ISEMPTY(description)
@@ -222,14 +213,12 @@
   %selectfile xmlfile
   %if ISFIELD(record, "Value")
     %assign startValue = FEVAL("grtfmi_start_value", record.Value)
-    %assign startAttr = " start=\"%<startValue>\""
-  %else
-    %assign startAttr = ""
+    %assign variableAttr = "%<variableAttr> start=\"%<startValue>\""
   %endif
   %if width == 1
-    <%<fmiType> name="%<variableName>" valueReference="%<vr>"%<variableAttr>%<startAttr>/>
+    <%<fmiType> name="%<variableName>" valueReference="%<vr>"%<variableAttr>/>
   %else
-    <%<fmiType> name="%<variableName>" valueReference="%<vr>"%<variableAttr>%<startAttr>>
+    <%<fmiType> name="%<variableName>" valueReference="%<vr>"%<variableAttr>>
     %foreach dimidx = SIZE(dims, 1)
       <Dimension start="%<dims[dimidx]>"/>
     %endforeach
