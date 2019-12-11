@@ -275,22 +275,13 @@ static void setInput(SimStruct *S) {
 
 	auto fmu = component<FMU>(S);
 
-	const auto feedThrough = directInput(S);
-
-	// don't apply the delayed input at the first step
-	if (!feedThrough && ssGetT(S) == ssGetTStart(S)) {
-		return;
-	}
-
-	auto preu = ssGetRWork(S) + 2 * nz(S); // previous inputs
-
 	int iu = 0;
 
 	for (int i = 0; i < nu(S); i++) {
 
-		auto type  = variableType(S, inputPortTypesParam, i);
+		auto type = variableType(S, inputPortTypesParam, i);
 
-		const void *y = feedThrough ? ssGetInputPortSignal(S, i) : nullptr;
+		const void *y = ssGetInputPortSignal(S, i);
 
 		for (int j = 0; j < inputPortWidth(S, i); j++) {
 
@@ -299,13 +290,13 @@ static void setInput(SimStruct *S) {
 			// set the input
 			switch (type) {
 			case Type::REAL:
-				fmu->setReal(vr, feedThrough ? static_cast<const real_T*>(y)[j] : preu[iu]);
+				fmu->setReal(vr, static_cast<const real_T*>(y)[j]);
 				break;
 			case Type::INTEGER:
-				fmu->setInteger(vr, feedThrough ? static_cast<const int32_T*>(y)[j] : preu[iu]);
+				fmu->setInteger(vr, static_cast<const int32_T*>(y)[j]);
 				break;
 			case Type::BOOLEAN:
-				fmu->setBoolean(vr, feedThrough ? static_cast<const boolean_T*>(y)[j] : preu[iu]);
+				fmu->setBoolean(vr, static_cast<const boolean_T*>(y)[j]);
 				break;
 			default:
 				break;
@@ -317,47 +308,93 @@ static void setInput(SimStruct *S) {
 
 }
 
+//static void setInput(SimStruct *S) {
+//
+//	auto fmu = component<FMU>(S);
+//
+//	const auto feedThrough = directInput(S);
+//
+//	// don't apply the delayed input at the first step
+//	if (!feedThrough && ssGetT(S) == ssGetTStart(S)) {
+//		return;
+//	}
+//
+//	auto preu = ssGetRWork(S) + 2 * nz(S); // previous inputs
+//
+//	int iu = 0;
+//
+//	for (int i = 0; i < nu(S); i++) {
+//
+//		auto type  = variableType(S, inputPortTypesParam, i);
+//
+//		const void *y = feedThrough ? ssGetInputPortSignal(S, i) : nullptr;
+//
+//		for (int j = 0; j < inputPortWidth(S, i); j++) {
+//
+//			auto vr = valueReference(S, inputPortVariableVRsParam, iu);
+//
+//			// set the input
+//			switch (type) {
+//			case Type::REAL:
+//				fmu->setReal(vr, feedThrough ? static_cast<const real_T*>(y)[j] : preu[iu]);
+//				break;
+//			case Type::INTEGER:
+//				fmu->setInteger(vr, feedThrough ? static_cast<const int32_T*>(y)[j] : preu[iu]);
+//				break;
+//			case Type::BOOLEAN:
+//				fmu->setBoolean(vr, feedThrough ? static_cast<const boolean_T*>(y)[j] : preu[iu]);
+//				break;
+//			default:
+//				break;
+//			}
+//
+//			iu++;
+//		}
+//	}
+//
+//}
+
 /* Set the input derivatives for all real input ports with direct feed-through */
-static void setInputDerivatives(SimStruct *S, double h) {
-
-	//if (h <= 0) {
-	//	return;
-	//}
-
-	auto slave = component<Slave>(S);
-
-	const real_T *preu = ssGetRWork(S) + 2 * nz(S);
-
-	int iu = 0;
-
-	for (int i = 0; i < nu(S); i++) {
-
-		if (!ssGetInputPortDirectFeedThrough(S, i)) {
-			continue;
-		}
-
-		auto type  = variableType(S, inputPortTypesParam, i);
-
-		if (type != fmikit::REAL) {
-			continue;
-		}
-
-		const real_T *u = ssGetInputPortRealSignal(S, i);
-
-		for (int j = 0; j < inputPortWidth(S, i); j++) {
-
-			auto vr = valueReference(S, inputPortVariableVRsParam, iu);
-
-			auto du = (u[j] - preu[iu]) / h;
-
-			slave->setRealInputDerivative(vr, 1, du);
-
-			iu++;
-		}
-
-	}
-
-}
+//static void setInputDerivatives(SimStruct *S, double h) {
+//
+//	//if (h <= 0) {
+//	//	return;
+//	//}
+//
+//	auto slave = component<Slave>(S);
+//
+//	const real_T *preu = ssGetRWork(S) + 2 * nz(S);
+//
+//	int iu = 0;
+//
+//	for (int i = 0; i < nu(S); i++) {
+//
+//		if (!ssGetInputPortDirectFeedThrough(S, i)) {
+//			continue;
+//		}
+//
+//		auto type  = variableType(S, inputPortTypesParam, i);
+//
+//		if (type != fmikit::REAL) {
+//			continue;
+//		}
+//
+//		const real_T *u = ssGetInputPortRealSignal(S, i);
+//
+//		for (int j = 0; j < inputPortWidth(S, i); j++) {
+//
+//			auto vr = valueReference(S, inputPortVariableVRsParam, iu);
+//
+//			auto du = (u[j] - preu[iu]) / h;
+//
+//			slave->setRealInputDerivative(vr, 1, du);
+//
+//			iu++;
+//		}
+//
+//	}
+//
+//}
 
 static void setOutput(SimStruct *S, FMU *fmu) {
 
@@ -1010,9 +1047,9 @@ static void mdlOutputs(SimStruct *S, int_T tid) {
 
 		if (model2 && model2->getState() == EventModeState) {
 
-			if (directInput(S)) {
-				setInput(S);
-			}
+			//if (directInput(S)) {
+			setInput(S);
+			//}
 
 			do {
 				model2->newDiscreteStates();
@@ -1038,12 +1075,12 @@ static void mdlOutputs(SimStruct *S, int_T tid) {
 
 		if (h > 0) {
 
-			//setRecordedInput(S);
-			setInput(S);
+			// setRecordedInput(S);
+			// setInput(S);
 
-			if (!directInput(S) && canInterpolateInputs(S)) {
-				setInputDerivatives(S, h);
-			}
+			//if (!directInput(S) && canInterpolateInputs(S)) {
+			//	setInputDerivatives(S, h);
+			//}
 
 			slave->doStep(h);
 		}
@@ -1058,38 +1095,40 @@ static void mdlUpdate(SimStruct *S, int_T tid) {
 
 	logDebug(S, "mdlUpdate() called on %s (t=%.16g, %s)", ssGetPath(S), ssGetT(S), ssIsMajorTimeStep(S) ? "major" : "minor");
 
-	// record the inputs
-	real_T *preu = ssGetRWork(S) + 2 * nz(S);
+	setInput(S);
 
-	int iu = 0;
+	//// record the inputs
+	//real_T *preu = ssGetRWork(S) + 2 * nz(S);
 
-	for (int i = 0; i < nu(S); i++) {
+	//int iu = 0;
 
-		auto type = variableType(S, inputPortTypesParam, i);
+	//for (int i = 0; i < nu(S); i++) {
 
-		const void *u = ssGetInputPortSignal(S, i);
+	//	auto type = variableType(S, inputPortTypesParam, i);
 
-		for (int j = 0; j < inputPortWidth(S, i); j++) {
+	//	const void *u = ssGetInputPortSignal(S, i);
 
-			auto vr = valueReference(S, inputPortVariableVRsParam, iu);
+	//	for (int j = 0; j < inputPortWidth(S, i); j++) {
 
-			switch (type) {
-			case Type::REAL:
-				preu[iu] = static_cast<const real_T*>(u)[j];
-				break;
-			case Type::INTEGER:
-				preu[iu] = static_cast<const int32_T*>(u)[j];
-				break;
-			case Type::BOOLEAN:
-				preu[iu] = static_cast<const boolean_T*>(u)[j];
-				break;
-			default:
-				break;
-			}
+	//		auto vr = valueReference(S, inputPortVariableVRsParam, iu);
 
-			iu++;
-		}
-	}
+	//		switch (type) {
+	//		case Type::REAL:
+	//			preu[iu] = static_cast<const real_T*>(u)[j];
+	//			break;
+	//		case Type::INTEGER:
+	//			preu[iu] = static_cast<const int32_T*>(u)[j];
+	//			break;
+	//		case Type::BOOLEAN:
+	//			preu[iu] = static_cast<const boolean_T*>(u)[j];
+	//			break;
+	//		default:
+	//			break;
+	//		}
+
+	//		iu++;
+	//	}
+	//}
 
 }
 #endif // MDL_UPDATE
