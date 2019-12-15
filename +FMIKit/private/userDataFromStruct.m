@@ -47,6 +47,6 @@ end
 userData.useSourceCode    = ud.useSourceCode;
 userData.functionName     = ud.functionName;
 userData.parameters       = ud.parameters;
-userData.directInput      = ud.directInput;
+% userData.directInput      = ud.directInput;
 
 end
