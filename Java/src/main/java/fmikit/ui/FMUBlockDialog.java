@@ -165,7 +165,7 @@ public class FMUBlockDialog extends JDialog {
         variablesTree.setModel(null);
         outportsTree.setModel(null);
 
-        // disable the "Direct Input" when "Model Exchange" is selected
+        // disable the "Relative Tolerance" when "Model Exchange" is selected
         cmbbxRunAsKind.addActionListener(new ActionListener() {
             public void actionPerformed(ActionEvent e) {
                 boolean isCoSimulation = cmbbxRunAsKind.getSelectedIndex() == 1;
@@ -865,12 +865,8 @@ public class FMUBlockDialog extends JDialog {
             // input port widths
             params.add("[" + Util.join(inputPortWidths, " ") + "]");
 
-            // direct input
-            if (isModelExchange) {
-                params.add("1");  // always true for Model Exchange
-            } else {
-                params.add("0");
-            }
+            // direct input (unused)
+            params.add("0");
 
             // input port direct feed through
             if (isModelExchange) {
@@ -885,8 +881,8 @@ public class FMUBlockDialog extends JDialog {
             // input port variable VRs
             params.add("[" + Util.join(inputPortVariableVRs, " ") + "]");
 
-            // can interpolate inputs
-            params.add(runAsKind == 1 && modelDescription.coSimulation.canInterpolateInputs ? "1" : "0");
+            // can interpolate inputs (unused)
+            params.add("0");
 
             // output port widths
             params.add("[" + Util.join(outportWidths, " ") + "]");

@@ -83,7 +83,7 @@ static string getStringParam(SimStruct *S, int index) {
 
 	// convert real_T to ASCII char
 	for (int i = 0; i < n; i++) {
-		// TODO: assert 0 <= data[i] <= 127 
+		// TODO: assert 0 <= data[i] <= 127
 		cstr[i] = data[i];
 	}
 
@@ -214,15 +214,15 @@ template<typename T> T *component(SimStruct *S) {
 }
 
 static void logCall(SimStruct *S, const char* message) {
-    
+
     FILE *logfile = nullptr;
-    
+
 	void **p = ssGetPWork(S);
-    
+
     if (p) {
         logfile = static_cast<FILE *>(p[1]);
     }
-    
+
     if (logfile) {
         fputs(message, logfile);
         fputs("\n", logfile);
@@ -234,7 +234,7 @@ static void logCall(SimStruct *S, const char* message) {
 }
 
 static void logFMUMessage(FMU *instance, LogLevel level, const char* category, const char* message) {
-    
+
     if (instance && instance->m_userData) {
         SimStruct *S = static_cast<SimStruct *>(instance->m_userData);
         logCall(S, message);
@@ -251,7 +251,7 @@ static void logFMICall(FMU *instance, const char* message) {
 
 /* log mdl*() and fmi*() calls */
 static void logDebug(SimStruct *S, const char* message, ...) {
-    
+
     if (logFMICalls(S)) {
         va_list args;
         va_start(args, message);
@@ -527,7 +527,7 @@ static void mdlCheckParameters(SimStruct *S) {
 		ssSetErrorStatus(S, "Parameter 5 (unzip directory) must be a string");
 		return;
 	}
-    
+
     if (!mxIsNumeric(ssGetSFcnParam(S, debugLoggingParam)) || mxGetNumberOfElements(ssGetSFcnParam(S, logLevelParam)) != 1) {
         ssSetErrorStatus(S, "Parameter 6 (debug logging) must be a scalar");
         return;
@@ -537,13 +537,13 @@ static void mdlCheckParameters(SimStruct *S) {
         ssSetErrorStatus(S, "Parameter 7 (log FMI calls) must be a scalar");
         return;
     }
-    
+
     if (!mxIsNumeric(ssGetSFcnParam(S, logLevelParam)) || mxGetNumberOfElements(ssGetSFcnParam(S, logLevelParam)) != 1 ||
 		(logLevel(S) != 0 && logLevel(S) != 1 && logLevel(S) != 2 && logLevel(S) != 3 && logLevel(S) != 4 && logLevel(S) != 5)) {
         ssSetErrorStatus(S, "Parameter 8 (log level) must be one of 0 (= info), 1 (= warning), 2 (= discard), 3 (= error), 4 (= fatal) or 5 (= none)");
         return;
     }
-    
+
     if (!mxIsChar(ssGetSFcnParam(S, logFileParam))) {
         ssSetErrorStatus(S, "Parameter 9 (log file) must be a string");
         return;
@@ -815,18 +815,18 @@ static void mdlInitializeSampleTimes(SimStruct *S) {
 static void mdlStart(SimStruct *S) {
 
     void **p = ssGetPWork(S);
-    
+
     if (p[1]) {
         fclose(static_cast<FILE *>(p[1]));
         p[1] = nullptr;
     }
-    
+
     auto logfile = logFile(S);
-    
+
     if (!logfile.empty()) {
         p[1] = fopen(logfile.c_str(), "w");
     }
-    
+
 	logDebug(S, "mdlStart() called on %s", ssGetPath(S));
 
 	auto instanceName = ssGetPath(S);
@@ -990,7 +990,7 @@ static void mdlOutputs(SimStruct *S, int_T tid) {
 static void mdlUpdate(SimStruct *S, int_T tid) {
 
 	logDebug(S, "mdlUpdate() called on %s (t=%.16g, %s)", ssGetPath(S), ssGetT(S), ssIsMajorTimeStep(S) ? "major" : "minor");
-	
+
 	setInput(S, false);
 }
 #endif // MDL_UPDATE

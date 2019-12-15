@@ -21,7 +21,6 @@ ud = struct(...
     'functionName',      [], ...
     'parameters',        [] ...
     );
-%    'directInput',       [] ...
 
 % TODO: check version
 
@@ -63,6 +62,5 @@ end
 ud.useSourceCode    = userData.useSourceCode;
 ud.functionName     = char(userData.functionName);
 ud.parameters       = char(userData.parameters);
-%ud.directInput      = userData.directInput;
 
 end
