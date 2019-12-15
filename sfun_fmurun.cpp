@@ -162,10 +162,6 @@ static bool inputPortDirectFeedThrough(SimStruct *S, int index) {
 	return static_cast<real_T *>(mxGetData(ssGetSFcnParam(S, inputPortDirectFeedThroughParam)))[index] != 0;
 }
 
-//static bool canInterpolateInputs(SimStruct *S) {
-//	return static_cast<real_T *>(mxGetData(ssGetSFcnParam(S, canInterpolateInputsParam)))[0] != 0;
-//}
-
 // number of input ports
 inline size_t nu(SimStruct *S) { return mxGetNumberOfElements(ssGetSFcnParam(S, inputPortWidthsParam)); }
 
@@ -204,10 +200,6 @@ inline real_T scalarValue(SimStruct *S, Parameter parameter, int index) {
 	auto param = ssGetSFcnParam(S, parameter);
 	return static_cast<real_T *>(mxGetData(param))[index];
 }
-
-//static bool directInput(SimStruct *S) {
-//	return static_cast<real_T *>(mxGetData(ssGetSFcnParam(S, directInputParam)))[0] != 0;
-//}
 
 static int outputPortWidth(SimStruct *S, int index) {
 	auto portWidths = static_cast<real_T *>(mxGetData(ssGetSFcnParam(S, outputPortWidthsParam)));
@@ -309,94 +301,6 @@ static void setInput(SimStruct *S, bool direct) {
 	}
 
 }
-
-//static void setInput(SimStruct *S) {
-//
-//	auto fmu = component<FMU>(S);
-//
-//	const auto feedThrough = directInput(S);
-//
-//	// don't apply the delayed input at the first step
-//	if (!feedThrough && ssGetT(S) == ssGetTStart(S)) {
-//		return;
-//	}
-//
-//	auto preu = ssGetRWork(S) + 2 * nz(S); // previous inputs
-//
-//	int iu = 0;
-//
-//	for (int i = 0; i < nu(S); i++) {
-//
-//		auto type  = variableType(S, inputPortTypesParam, i);
-//
-//		const void *y = feedThrough ? ssGetInputPortSignal(S, i) : nullptr;
-//
-//		for (int j = 0; j < inputPortWidth(S, i); j++) {
-//
-//			auto vr = valueReference(S, inputPortVariableVRsParam, iu);
-//
-//			// set the input
-//			switch (type) {
-//			case Type::REAL:
-//				fmu->setReal(vr, feedThrough ? static_cast<const real_T*>(y)[j] : preu[iu]);
-//				break;
-//			case Type::INTEGER:
-//				fmu->setInteger(vr, feedThrough ? static_cast<const int32_T*>(y)[j] : preu[iu]);
-//				break;
-//			case Type::BOOLEAN:
-//				fmu->setBoolean(vr, feedThrough ? static_cast<const boolean_T*>(y)[j] : preu[iu]);
-//				break;
-//			default:
-//				break;
-//			}
-//
-//			iu++;
-//		}
-//	}
-//
-//}
-
-/* Set the input derivatives for all real input ports with direct feed-through */
-//static void setInputDerivatives(SimStruct *S, double h) {
-//
-//	//if (h <= 0) {
-//	//	return;
-//	//}
-//
-//	auto slave = component<Slave>(S);
-//
-//	const real_T *preu = ssGetRWork(S) + 2 * nz(S);
-//
-//	int iu = 0;
-//
-//	for (int i = 0; i < nu(S); i++) {
-//
-//		if (!ssGetInputPortDirectFeedThrough(S, i)) {
-//			continue;
-//		}
-//
-//		auto type  = variableType(S, inputPortTypesParam, i);
-//
-//		if (type != fmikit::REAL) {
-//			continue;
-//		}
-//
-//		const real_T *u = ssGetInputPortRealSignal(S, i);
-//
-//		for (int j = 0; j < inputPortWidth(S, i); j++) {
-//
-//			auto vr = valueReference(S, inputPortVariableVRsParam, iu);
-//
-//			auto du = (u[j] - preu[iu]) / h;
-//
-//			slave->setRealInputDerivative(vr, 1, du);
-//
-//			iu++;
-//		}
-//
-//	}
-//
-//}
 
 static void setOutput(SimStruct *S, FMU *fmu) {
 
@@ -865,7 +769,7 @@ static void mdlInitializeSizes(SimStruct *S) {
 		ssSetInputPortRequiredContiguous(S, i, 1); // direct input signal access
 		DTypeId type = simulinkVariableType(S, inputPortTypesParam, i);
 		ssSetInputPortDataType(S, i, type);
-		ssSetInputPortDirectFeedThrough(S, i, /* directInput(S) || */ inputPortDirectFeedThrough(S, i)); // direct feed through
+		ssSetInputPortDirectFeedThrough(S, i, inputPortDirectFeedThrough(S, i)); // direct feed through
 		logDebug(S, "ssSetInputPortDirectFeedThrough(S, %d, %d) called on %s", i, 1, ssGetPath(S));
 	}
 
@@ -1049,9 +953,7 @@ static void mdlOutputs(SimStruct *S, int_T tid) {
 
 		if (model2 && model2->getState() == EventModeState) {
 
-			//if (directInput(S)) {
 			setInput(S, true);
-			//}
 
 			do {
 				model2->newDiscreteStates();
@@ -1076,14 +978,6 @@ static void mdlOutputs(SimStruct *S, int_T tid) {
 		auto slave = dynamic_cast<Slave *>(fmu);
 
 		if (h > 0) {
-
-			// setRecordedInput(S);
-			// setInput(S);
-
-			//if (!directInput(S) && canInterpolateInputs(S)) {
-			//	setInputDerivatives(S, h);
-			//}
-
 			slave->doStep(h);
 		}
 	}
@@ -1096,42 +990,8 @@ static void mdlOutputs(SimStruct *S, int_T tid) {
 static void mdlUpdate(SimStruct *S, int_T tid) {
 
 	logDebug(S, "mdlUpdate() called on %s (t=%.16g, %s)", ssGetPath(S), ssGetT(S), ssIsMajorTimeStep(S) ? "major" : "minor");
-
+	
 	setInput(S, false);
-
-	//// record the inputs
-	//real_T *preu = ssGetRWork(S) + 2 * nz(S);
-
-	//int iu = 0;
-
-	//for (int i = 0; i < nu(S); i++) {
-
-	//	auto type = variableType(S, inputPortTypesParam, i);
-
-	//	const void *u = ssGetInputPortSignal(S, i);
-
-	//	for (int j = 0; j < inputPortWidth(S, i); j++) {
-
-	//		auto vr = valueReference(S, inputPortVariableVRsParam, iu);
-
-	//		switch (type) {
-	//		case Type::REAL:
-	//			preu[iu] = static_cast<const real_T*>(u)[j];
-	//			break;
-	//		case Type::INTEGER:
-	//			preu[iu] = static_cast<const int32_T*>(u)[j];
-	//			break;
-	//		case Type::BOOLEAN:
-	//			preu[iu] = static_cast<const boolean_T*>(u)[j];
-	//			break;
-	//		default:
-	//			break;
-	//		}
-
-	//		iu++;
-	//	}
-	//}
-
 }
 #endif // MDL_UPDATE
 
