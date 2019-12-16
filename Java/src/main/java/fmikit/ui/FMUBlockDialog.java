@@ -862,11 +862,9 @@ public class FMUBlockDialog extends JDialog {
         }
 
         if (generic) {
+
             // input port widths
             params.add("[" + Util.join(inputPortWidths, " ") + "]");
-
-            // direct input (unused)
-            params.add("0");
 
             // input port direct feed through
             if (isModelExchange) {
@@ -880,9 +878,6 @@ public class FMUBlockDialog extends JDialog {
 
             // input port variable VRs
             params.add("[" + Util.join(inputPortVariableVRs, " ") + "]");
-
-            // can interpolate inputs (unused)
-            params.add("0");
 
             // output port widths
             params.add("[" + Util.join(outportWidths, " ") + "]");

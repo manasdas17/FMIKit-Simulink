@@ -12,6 +12,8 @@
 #include <wininet.h>
 #endif
 
+#include <stdio.h>
+#include <stdarg.h>
 #include <string>
 
 extern "C" {
@@ -52,11 +54,9 @@ enum Parameter {
 	stringStartVRsParam,
 	stringStartValuesParam,
 	inputPortWidthsParam,
-	directInputParam, // unused
 	inputPortDirectFeedThroughParam,
 	inputPortTypesParam,
 	inputPortVariableVRsParam,
-	canInterpolateInputsParam, // unused
 	outputPortWidthsParam,
 	outputPortTypesParam,
 	outputPortVariableVRsParam,
@@ -496,6 +496,14 @@ static void update(SimStruct *S) {
 
 }
 
+static void setErrorStatus(SimStruct *S, const char *message, ...) {
+	va_list args;
+	va_start(args, message);
+	static char msg[1024];
+	vsnprintf(msg, 1024, message, args);
+	ssSetErrorStatus(S, msg);
+	va_end(args);
+}
 
 #define MDL_CHECK_PARAMETERS
 #if defined(MDL_CHECK_PARAMETERS) && defined(MATLAB_MEX_FILE)
@@ -504,132 +512,132 @@ static void mdlCheckParameters(SimStruct *S) {
 	logDebug(S, "mdlCheckParameters() called on %s", ssGetPath(S));
 
 	if (!mxIsChar(ssGetSFcnParam(S, fmiVersionParam)) || (fmiVersion(S) != "1.0" && fmiVersion(S) != "2.0")) {
-        ssSetErrorStatus(S, "Parameter 1 (FMI version) must be one of '1.0' or '2.0'");
+        setErrorStatus(S, "Parameter %d (FMI version) must be one of '1.0' or '2.0'", fmiVersionParam + 1);
         return;
     }
 
 	if (!mxIsNumeric(ssGetSFcnParam(S, runAsKindParam)) || mxGetNumberOfElements(ssGetSFcnParam(S, runAsKindParam)) != 1 || (runAsKind(S) != MODEL_EXCHANGE && runAsKind(S) != CO_SIMULATION)) {
-        ssSetErrorStatus(S, "Parameter 2 (run as kind) must be one of 0 (= MODEL_EXCHANGE) or 1 (= CO_SIMULATION)");
+        setErrorStatus(S, "Parameter %d (run as kind) must be one of 0 (= MODEL_EXCHANGE) or 1 (= CO_SIMULATION)", runAsKindParam + 1);
         return;
     }
 
 	if (!mxIsChar(ssGetSFcnParam(S, guidParam))) {
-        ssSetErrorStatus(S, "Parameter 3 (GUID) must be a string");
+        setErrorStatus(S, "Parameter %d (GUID) must be a string", guidParam + 1);
         return;
     }
 
 	if (!mxIsChar(ssGetSFcnParam(S, modelIdentifierParam))) {
-        ssSetErrorStatus(S, "Parameter 4 (model identifier) must be a string");
+        setErrorStatus(S, "Parameter %d (model identifier) must be a string", modelIdentifierParam + 1);
         return;
     }
 
 	if (!mxIsChar(ssGetSFcnParam(S, unzipDirectoryParam))) {
-		ssSetErrorStatus(S, "Parameter 5 (unzip directory) must be a string");
+		setErrorStatus(S, "Parameter %d (unzip directory) must be a string", unzipDirectoryParam + 1);
 		return;
 	}
 
-    if (!mxIsNumeric(ssGetSFcnParam(S, debugLoggingParam)) || mxGetNumberOfElements(ssGetSFcnParam(S, logLevelParam)) != 1) {
-        ssSetErrorStatus(S, "Parameter 6 (debug logging) must be a scalar");
+    if (!mxIsNumeric(ssGetSFcnParam(S, debugLoggingParam)) || mxGetNumberOfElements(ssGetSFcnParam(S, debugLoggingParam)) != 1) {
+        setErrorStatus(S, "Parameter %d (debug logging) must be a scalar", debugLoggingParam + 1);
         return;
     }
 
-    if (!mxIsNumeric(ssGetSFcnParam(S, logFMICallsParam)) || mxGetNumberOfElements(ssGetSFcnParam(S, logLevelParam)) != 1) {
-        ssSetErrorStatus(S, "Parameter 7 (log FMI calls) must be a scalar");
+    if (!mxIsNumeric(ssGetSFcnParam(S, logFMICallsParam)) || mxGetNumberOfElements(ssGetSFcnParam(S, logFMICallsParam)) != 1) {
+        setErrorStatus(S, "Parameter %d (log FMI calls) must be a scalar", logFMICallsParam + 1);
         return;
     }
 
     if (!mxIsNumeric(ssGetSFcnParam(S, logLevelParam)) || mxGetNumberOfElements(ssGetSFcnParam(S, logLevelParam)) != 1 ||
 		(logLevel(S) != 0 && logLevel(S) != 1 && logLevel(S) != 2 && logLevel(S) != 3 && logLevel(S) != 4 && logLevel(S) != 5)) {
-        ssSetErrorStatus(S, "Parameter 8 (log level) must be one of 0 (= info), 1 (= warning), 2 (= discard), 3 (= error), 4 (= fatal) or 5 (= none)");
+        setErrorStatus(S, "Parameter %d (log level) must be one of 0 (= info), 1 (= warning), 2 (= discard), 3 (= error), 4 (= fatal) or 5 (= none)", logLevelParam + 1);
         return;
     }
 
     if (!mxIsChar(ssGetSFcnParam(S, logFileParam))) {
-        ssSetErrorStatus(S, "Parameter 9 (log file) must be a string");
+        setErrorStatus(S, "Parameter %d (log file) must be a string", logFileParam + 1);
         return;
     }
 
 	if (!mxIsNumeric(ssGetSFcnParam(S, relativeToleranceParam)) || mxGetNumberOfElements(ssGetSFcnParam(S, relativeToleranceParam)) != 1) {
-        ssSetErrorStatus(S, "Parameter 10 (relative tolerance) must be numeric");
+        setErrorStatus(S, "Parameter %d (relative tolerance) must be numeric", relativeToleranceParam + 1);
         return;
     }
 
 	if (!mxIsNumeric(ssGetSFcnParam(S, sampleTimeParam)) || mxGetNumberOfElements(ssGetSFcnParam(S, sampleTimeParam)) != 1) {
-        ssSetErrorStatus(S, "Parameter 11 (sample time) must be numeric");
+        setErrorStatus(S, "Parameter %d (sample time) must be numeric", sampleTimeParam + 1);
         return;
     }
 
 	if (!mxIsNumeric(ssGetSFcnParam(S, offsetTimeParam)) || mxGetNumberOfElements(ssGetSFcnParam(S, offsetTimeParam)) != 1) {
-		ssSetErrorStatus(S, "Parameter 12 (offset time) must be numeric");
+		setErrorStatus(S, "Parameter %d (offset time) must be numeric", offsetTimeParam + 1);
 		return;
 	}
 
 	if (!mxIsNumeric(ssGetSFcnParam(S, nxParam)) || mxGetNumberOfElements(ssGetSFcnParam(S, nxParam)) != 1) {
-        ssSetErrorStatus(S, "Parameter 13 (number of continuous states) must be a scalar");
+        setErrorStatus(S, "Parameter %d (number of continuous states) must be a scalar", nxParam + 1);
         return;
     }
 
 	if (!mxIsNumeric(ssGetSFcnParam(S, nzParam)) || mxGetNumberOfElements(ssGetSFcnParam(S, nzParam)) != 1) {
-        ssSetErrorStatus(S, "Parameter 14 (number of event indicators) must be a scalar");
+        setErrorStatus(S, "Parameter %d (number of event indicators) must be a scalar", nzParam + 1);
         return;
     }
 
 	if (!mxIsDouble(ssGetSFcnParam(S, scalarStartTypesParam))) {
-    	ssSetErrorStatus(S, "Parameter 15 (scalar start value types) must be a double array");
+    	setErrorStatus(S, "Parameter %d (scalar start value types) must be a double array", scalarStartTypesParam + 1);
     	return;
     }
 
 	if (!mxIsDouble(ssGetSFcnParam(S, scalarStartVRsParam))) {
-    	ssSetErrorStatus(S, "Parameter 16 (scalar start value references) must be a double array");
+    	setErrorStatus(S, "Parameter %d (scalar start value references) must be a double array", scalarStartVRsParam + 1);
     	return;
     }
 
 	if (mxGetNumberOfElements(ssGetSFcnParam(S, scalarStartVRsParam)) != mxGetNumberOfElements(ssGetSFcnParam(S, scalarStartTypesParam))) {
-        ssSetErrorStatus(S, "The number of elements in parameter 16 (scalar start value references) and parameter 15 (scalar start value types) must be equal");
+        setErrorStatus(S, "The number of elements in parameter %d (scalar start value references) and parameter %d (scalar start value types) must be equal", scalarStartVRsParam + 1, scalarStartTypesParam + 1);
         return;
     }
 
 	// TODO: check VRS values!
 
 	if (!mxIsDouble(ssGetSFcnParam(S, scalarStartValuesParam))) {
-        ssSetErrorStatus(S, "Parameter 17 (scalar start values) must be a double array");
+        setErrorStatus(S, "Parameter %d (scalar start values) must be a double array", scalarStartValuesParam + 1);
         return;
     }
 
-	if (mxGetNumberOfElements(ssGetSFcnParam(S, scalarStartTypesParam)) != mxGetNumberOfElements(ssGetSFcnParam(S, scalarStartValuesParam))) {
-        ssSetErrorStatus(S, "The number of elements in parameter 15 (scalar start values) and parameter 17 (scalar start value types) must be equal");
+	if (mxGetNumberOfElements(ssGetSFcnParam(S, scalarStartValuesParam)) != mxGetNumberOfElements(ssGetSFcnParam(S, scalarStartTypesParam))) {
+        setErrorStatus(S, "The number of elements in parameter %d (scalar start values) and parameter %d (scalar start value types) must be equal", scalarStartValuesParam + 1, scalarStartTypesParam + 1);
         return;
     }
 
 	if (!mxIsDouble(ssGetSFcnParam(S, stringStartVRsParam))) {
-        ssSetErrorStatus(S, "Parameter 18 (string start value references) must be a double array");
+        setErrorStatus(S, "Parameter %d (string start value references) must be a double array", stringStartVRsParam + 1);
         return;
     }
 
 	// TODO: check VRS values!
 
 	if (!mxIsChar(ssGetSFcnParam(S, stringStartValuesParam))) {
-        ssSetErrorStatus(S, "Parameter 19 (string start values) must be a char matrix");
+        setErrorStatus(S, "Parameter %d (string start values) must be a char matrix", stringStartValuesParam + 1);
         return;
     }
 
 	if (mxGetM(ssGetSFcnParam(S, stringStartValuesParam)) != mxGetNumberOfElements(ssGetSFcnParam(S, stringStartVRsParam))) {
-        ssSetErrorStatus(S, "The number of rows in parameter 19 (string start values) must be equal to the number of elements in parameter 18 (string start value references)");
+        setErrorStatus(S, "The number of rows in parameter %d (string start values) must be equal to the number of elements in parameter %d (string start value references)", stringStartValuesParam + 1, stringStartVRsParam + 1);
         return;
     }
 
 	if (!mxIsDouble(ssGetSFcnParam(S, inputPortWidthsParam))) {
-		ssSetErrorStatus(S, "Parameter 20 (input port widths) must be a double array");
+		setErrorStatus(S, "Parameter %d (input port widths) must be a double array", inputPortWidthsParam + 1);
 		return;
 	}
 
 	if (!mxIsDouble(ssGetSFcnParam(S, inputPortDirectFeedThroughParam))) {
-		ssSetErrorStatus(S, "Parameter 22 (input port direct feed through) must be a double array");
+		setErrorStatus(S, "Parameter %d (input port direct feed through) must be a double array", inputPortDirectFeedThroughParam + 1);
 		return;
 	}
 
 	if (mxGetNumberOfElements(ssGetSFcnParam(S, inputPortDirectFeedThroughParam)) != mxGetNumberOfElements(ssGetSFcnParam(S, inputPortWidthsParam))) {
-		ssSetErrorStatus(S, "The number of elements in parameter 22 (input port direct feed through) must be equal to the number of elements in parameter 20 (inport port widths)");
+		setErrorStatus(S, "The number of elements in parameter %d (input port direct feed through) must be equal to the number of elements in parameter %d (inport port widths)", inputPortDirectFeedThroughParam + 1, inputPortWidthsParam + 1);
 		return;
 	}
 
@@ -637,64 +645,54 @@ static void mdlCheckParameters(SimStruct *S) {
 
 	for (int i = 0; i < mxGetNumberOfElements(ssGetSFcnParam(S, inputPortWidthsParam)); i++) {
 		if (inputPortWidth(S, i) < 1) {
-			ssSetErrorStatus(S, "Elements in parameter 20 (input port widths) must be >= 1");
+			setErrorStatus(S, "Elements in parameter %d (input port widths) must be >= 1", inputPortWidthsParam + 1);
 			return;
 		}
 		nu += inputPortWidth(S, i);
 	}
 
-	if (!mxIsDouble(ssGetSFcnParam(S, directInputParam)) || mxGetNumberOfElements(ssGetSFcnParam(S, directInputParam)) != 1) {
-		ssSetErrorStatus(S, "Parameter 21 (direct input) must be a double scalar");
-		return;
-	}
-
 	if (!mxIsDouble(ssGetSFcnParam(S, inputPortDirectFeedThroughParam)) || mxGetNumberOfElements(ssGetSFcnParam(S, inputPortDirectFeedThroughParam)) != mxGetNumberOfElements(ssGetSFcnParam(S, inputPortWidthsParam))) {
-		ssSetErrorStatus(S, "Parameter 22 (input port direct feed through) must be a double array with the same number of elements as parameter 20 (input port widths)");
+		setErrorStatus(S, "Parameter %d (input port direct feed through) must be a double array with the same number of elements as parameter %d (input port widths)", inputPortDirectFeedThroughParam + 1, inputPortWidthsParam + 1);
 		return;
 	}
 
 	if (mxGetNumberOfElements(ssGetSFcnParam(S, inputPortDirectFeedThroughParam)) != mxGetNumberOfElements(ssGetSFcnParam(S, inputPortWidthsParam))) {
-		ssSetErrorStatus(S, "The number of elements in parameter 22 (inport port direct feed through) must be equal to the number of elements in parameter 20 (inport port widths)");
+		setErrorStatus(S, "The number of elements in parameter %d (inport port direct feed through) must be equal to the number of elements in parameter %d (inport port widths)", inputPortDirectFeedThroughParam + 1, inputPortWidthsParam + 1);
 		return;
 	}
 
 	if (!mxIsDouble(ssGetSFcnParam(S, inputPortTypesParam))) {
-		ssSetErrorStatus(S, "Parameter 23 (input port variable types) must be a double array");
+		setErrorStatus(S, "Parameter %d (input port variable types) must be a double array", inputPortTypesParam + 1);
 		return;
 	}
 
 	for (int i = 0; i < mxGetNumberOfElements(ssGetSFcnParam(S, inputPortTypesParam)); i++) {
 		auto v = static_cast<real_T *>(mxGetData(ssGetSFcnParam(S, inputPortTypesParam)))[i];
 		if (v != 0 && v != 1 && v != 2) {
-			ssSetErrorStatus(S, "Elements in parameter 23 (input port types) must be one of 0 (= Real), 1 (= Integer) or 2 (= Boolean)");
+			setErrorStatus(S, "Elements in parameter %d (input port types) must be one of 0 (= Real), 1 (= Integer) or 2 (= Boolean)", inputPortTypesParam + 1);
 			return;
 		}
 	}
 
 	if (mxGetNumberOfElements(ssGetSFcnParam(S, inputPortTypesParam)) != mxGetNumberOfElements(ssGetSFcnParam(S, inputPortWidthsParam))) {
-		ssSetErrorStatus(S, "The number of elements in parameter 23 (inport port types) must be equal to the number of the elements in parameter 20 (inport port widths)");
+		setErrorStatus(S, "The number of elements in parameter %d (inport port types) must be equal to the number of the elements in parameter %d (inport port widths)", inputPortTypesParam + 1, inputPortWidthsParam + 1);
 		return;
 	}
 
 	if (!mxIsDouble(ssGetSFcnParam(S, inputPortVariableVRsParam))) {
-        ssSetErrorStatus(S, "Parameter 24 (input port value references) must be a double array");
+        setErrorStatus(S, "Parameter %d (input port value references) must be a double array", inputPortVariableVRsParam + 1);
         return;
     }
 
 	if (mxGetNumberOfElements(ssGetSFcnParam(S, inputPortVariableVRsParam)) != nu) {
-		ssSetErrorStatus(S, "The number of elements in parameter 24 (input port value references) must be equal to the sum of the elements in parameter 20 (inport port widths)");
+		setErrorStatus(S, "The number of elements in parameter %d (input port value references) must be equal to the sum of the elements in parameter %d (inport port widths)", inputPortVariableVRsParam + 1, inputPortWidthsParam + 1);
 		return;
 	}
 
 	// TODO: check VRS values!
 
-	if (!mxIsDouble(ssGetSFcnParam(S, canInterpolateInputsParam)) || mxGetNumberOfElements(ssGetSFcnParam(S, canInterpolateInputsParam)) != 1) {
-		ssSetErrorStatus(S, "Parameter 25 (can interpolate inputs) must be a double scalar");
-		return;
-	}
-
 	if (!mxIsDouble(ssGetSFcnParam(S, outputPortWidthsParam))) {
-		ssSetErrorStatus(S, "Parameter 26 (output port widths) must be a double array");
+		setErrorStatus(S, "Parameter %d (output port widths) must be a double array", outputPortWidthsParam + 1);
 		return;
 	}
 
@@ -702,37 +700,37 @@ static void mdlCheckParameters(SimStruct *S) {
 
 	for (int i = 0; i < mxGetNumberOfElements(ssGetSFcnParam(S, outputPortWidthsParam)); i++) {
 		if (outputPortWidth(S, i) < 1) {
-			ssSetErrorStatus(S, "Elements in parameter 26 (output port widths) must be >= 1");
+			setErrorStatus(S, "Elements in parameter %d (output port widths) must be >= 1", outputPortWidthsParam + 1);
 			return;
 		}
 		ny += outputPortWidth(S, i);
 	}
 
 	if (!mxIsDouble(ssGetSFcnParam(S, outputPortTypesParam))) {
-        ssSetErrorStatus(S, "Parameter 27 (output port types) must be a double array");
+        setErrorStatus(S, "Parameter %d (output port types) must be a double array", outputPortTypesParam + 1);
         return;
     }
 
 	if (mxGetNumberOfElements(ssGetSFcnParam(S, outputPortTypesParam)) != mxGetNumberOfElements(ssGetSFcnParam(S, outputPortWidthsParam))) {
-		ssSetErrorStatus(S, "The number of elements in parameter 27 (output port types) must be equal to the number of the elements in parameter 26 (output port widths)");
+		setErrorStatus(S, "The number of elements in parameter %d (output port types) must be equal to the number of the elements in parameter %d (output port widths)", outputPortTypesParam + 1, outputPortWidthsParam + 1);
 		return;
 	}
 
 	for (int i = 0; i < mxGetNumberOfElements(ssGetSFcnParam(S, outputPortWidthsParam)); i++) {
 		auto v = variableType(S, outputPortTypesParam, i);
 		if (v != 0 && v != 1 && v != 2) { // TODO: check this
-			ssSetErrorStatus(S, "Elements in parameter 27 (output port types) must be one of 0 (= Real), 1 (= Integer) or 2 (= Boolean)");
+			setErrorStatus(S, "Elements in parameter %d (output port types) must be one of 0 (= Real), 1 (= Integer) or 2 (= Boolean)", outputPortTypesParam + 1);
 			return;
 		}
 	}
 
 	if (!mxIsDouble(ssGetSFcnParam(S, outputPortVariableVRsParam))) {
-        ssSetErrorStatus(S, "Parameter 28 (output variable value references) must be a double array");
+        setErrorStatus(S, "Parameter %d (output variable value references) must be a double array", outputPortVariableVRsParam + 1);
         return;
     }
 
 	if (mxGetNumberOfElements(ssGetSFcnParam(S, outputPortVariableVRsParam)) != ny) {
-		ssSetErrorStatus(S, "The number of elements in parameter 28 (output variable value references) must be equal to the sum of the elements in parameter 26 (output port widths)");
+		ssSetErrorStatus(S, "The number of elements in parameter %d (output variable value references) must be equal to the sum of the elements in parameter %d (output port widths)", outputPortVariableVRsParam + 1, outputPortWidthsParam + 1);
 		return;
 	}
 
