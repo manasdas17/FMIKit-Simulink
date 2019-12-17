@@ -6,7 +6,7 @@ if isempty(userData)
     return
 end
 
-if strcmp(userData.fmiKitVersion, '2.4')
+if any(strcmp(userData.fmiKitVersion, {'2.4', '2.6'}))
 
     disp(['Updating ' getfullname(block) ' that was imported with an older version of FMI Kit.'])
 
@@ -24,11 +24,6 @@ if strcmp(userData.fmiKitVersion, '2.4')
     disp('Save the model to apply the changes.')
 
     userData = get_param(block, 'UserData');
-
-elseif strcmp(userData.fmiKitVersion, '2.6')
-
-    % no changes w.r.t. 2.6
-    userData.fmiKitVersion = '2.7';
 
 end
 
