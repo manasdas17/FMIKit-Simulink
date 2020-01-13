@@ -65,12 +65,22 @@ add_library(${MODEL_NAME}_sf SHARED
   ${CUSTOM_SOURCE}
 )
 
-target_link_libraries(${MODEL_NAME}_sf
-  "${MATLAB_ROOT}/extern/lib/win64/microsoft/libmx.lib"
-  "${MATLAB_ROOT}/extern/lib/win64/microsoft/libmex.lib"
-  "${MATLAB_ROOT}/extern/lib/win64/microsoft/sf_runtime.lib"
-  ${SOLVER}
+target_include_directories(${MODEL_NAME}_sf PRIVATE
+  "c"
 )
+
+if (WIN32)
+  target_link_libraries(${MODEL_NAME}_sf
+    "${MATLAB_ROOT}/extern/lib/win64/microsoft/libmx.lib"
+    "${MATLAB_ROOT}/extern/lib/win64/microsoft/libmex.lib"
+    "${MATLAB_ROOT}/extern/lib/win64/microsoft/sf_runtime.lib"
+    ${SOLVER}
+  )
+elseif (APPLE)
+  target_link_libraries(${MODEL_NAME}_sf
+    ${SOLVER}
+  )
+endif ()
 
 target_compile_definitions(${MODEL_NAME}_sf PRIVATE
 	_CRT_SECURE_NO_WARNINGS
@@ -79,6 +89,9 @@ target_compile_definitions(${MODEL_NAME}_sf PRIVATE
 	RT_MALLOC
 	NDEBUG
 )
+
+# don't add the "lib" prefix to the shared library
+set_target_properties(${MODEL_NAME}_sf PROPERTIES PREFIX "")
 
 target_include_directories(${MODEL_NAME}_sf PRIVATE
   "${CMAKE_CURRENT_SOURCE_DIR}"
