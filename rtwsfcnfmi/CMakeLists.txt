@@ -52,10 +52,10 @@ target_include_directories(${SOLVER} PRIVATE
 )
 
 set(MODEL_SOURCES 
+  ../include/fmi2Functions.h
+  ../include/fmi2FunctionTypes.h
+  ../include/fmi2TypesPlatform.h
   c/fmi.h
-  c/fmi/fmi2Functions.h
-  c/fmi/fmi2FunctionTypes.h
-  c/fmi/fmi2TypesPlatform.h
   c/fmi2Functions.c
   c/fmi2.c
   "${RTW_DIR}/${MODEL_NAME}_sf_data.c"
@@ -73,7 +73,10 @@ add_library(${MODEL_NAME}_sf SHARED
   ${CUSTOM_SOURCE}
 )
 
-target_include_directories(${MODEL_NAME}_sf PRIVATE c)
+target_include_directories(${MODEL_NAME}_sf PRIVATE
+  ../include
+  c
+)
 
 if (WIN32)
   target_link_libraries(${MODEL_NAME}_sf

@@ -22,15 +22,15 @@
 
 %if FMIVersion == "2.0"
 /* Include header for FMI 2.0 */
-#include "fmi/fmi2Functions.h"
+#include "fmi2Functions.h"
 %elseif FMIType == "CoSimulation"
 /* Define model identifier and include header for FMI 1.0 CS */
 #define MODEL_IDENTIFIER %<OrigName>_sf
-#include "fmi/fmiFunctions.h"
+#include "fmiFunctions.h"
 %else
 /* Define model identifier and include header for FMI 1.0 ME */
 #define MODEL_IDENTIFIER %<OrigName>_sf
-#include "fmi/fmiModelFunctions.h"
+#include "fmiModelFunctions.h"
 %endif
 
 /* Define GUID string */
