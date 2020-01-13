@@ -51,23 +51,29 @@ target_include_directories(${SOLVER} PRIVATE
   "${MATLAB_ROOT}/rtw/c/src"
 )
 
-add_library(${MODEL_NAME}_sf SHARED
-  "c/fmi.h"
-  "c/fmi/fmi2Functions.h"
-  "c/fmi/fmi2FunctionTypes.h"
-  "c/fmi/fmi2TypesPlatform.h"
-  "c/fmi2Functions.c"
-  "c/fmi2.c"
+set(MODEL_SOURCES 
+  c/fmi.h
+  c/fmi/fmi2Functions.h
+  c/fmi/fmi2FunctionTypes.h
+  c/fmi/fmi2TypesPlatform.h
+  c/fmi2Functions.c
+  c/fmi2.c
   "${RTW_DIR}/${MODEL_NAME}_sf_data.c"
   "${RTW_DIR}/rtGetInf.c"
   "${RTW_DIR}/rtGetNaN.c"
   "${RTW_DIR}/modelDescription.xml"
+)
+
+if (EXISTS "${RTW_DIR}/rt_zcfcn.c")
+  set (MODEL_SOURCES ${MODEL_SOURCES} "${RTW_DIR}/rt_zcfcn.c")
+endif ()
+
+add_library(${MODEL_NAME}_sf SHARED
+  ${MODEL_SOURCES}
   ${CUSTOM_SOURCE}
 )
 
-target_include_directories(${MODEL_NAME}_sf PRIVATE
-  "c"
-)
+target_include_directories(${MODEL_NAME}_sf PRIVATE c)
 
 if (WIN32)
   target_link_libraries(${MODEL_NAME}_sf
@@ -77,9 +83,7 @@ if (WIN32)
     ${SOLVER}
   )
 elseif (APPLE)
-  target_link_libraries(${MODEL_NAME}_sf
-    ${SOLVER}
-  )
+  target_link_libraries(${MODEL_NAME}_sf ${SOLVER})
 endif ()
 
 target_compile_definitions(${MODEL_NAME}_sf PRIVATE
