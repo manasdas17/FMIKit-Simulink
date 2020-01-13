@@ -12,7 +12,7 @@
 */
 
 #include "fmi.h"
-#include "fmi/fmi2Functions.h"	/* Official FMI 2.0 header */
+#include "fmi2Functions.h"	/* Official FMI 2.0 header */
 
 /* Model status */
 typedef enum {
