@@ -42,7 +42,7 @@
   BEGIN_RTW_OPTIONS
 
   i = 1;
-  rtwoptions(i).prompt        = 'Real-Time Workshop S-Function Code Generation Options';
+  rtwoptions(i).prompt        = 'S-Function Target';
   rtwoptions(i).type          = 'Category';
   rtwoptions(i).enable        = 'on';  
   rtwoptions(i).default       = 2;   % number of items under this category
@@ -61,8 +61,7 @@
   rtwoptions(i).default        = 'off';
   rtwoptions(i).tlcvariable    = 'CreateModel';
   rtwoptions(i).makevariable   = 'CREATEMODEL';
-  rtwoptions(i).tooltip        = ...
-    ['Create a new model containing the generated Real-Time Workshop S-Function block inside it'];
+  rtwoptions(i).tooltip        = 'Create a new model containing the generated Real-Time Workshop S-Function block inside it';
 
   i = i + 1;
   rtwoptions(i).prompt         = 'Use value for tunable parameters';
@@ -70,14 +69,13 @@
   rtwoptions(i).default        = 'off';
   rtwoptions(i).tlcvariable    = 'UseParamValues';
   rtwoptions(i).makevariable   = 'USEPARAMVALUES';
-  rtwoptions(i).tooltip        = ...
-    ['Use value for variable instead of variable name in generated block mask edit fields'];
+  rtwoptions(i).tooltip        = 'Use value for variable instead of variable name in generated block mask edit fields';
 
   i = i + 1;
-  rtwoptions(i).prompt        = 'FMI options';
+  rtwoptions(i).prompt        = 'FMI';
   rtwoptions(i).type          = 'Category';
   rtwoptions(i).enable        = 'on';  
-  rtwoptions(i).default       = 14;   % number of items under this category
+  rtwoptions(i).default       = 10;   % number of items under this category
                                       % excluding this one.
   rtwoptions(i).popupstrings  = '';
   rtwoptions(i).tlcvariable   = '';
@@ -95,8 +93,7 @@
   rtwoptions(i).tlcvariable    = 'FMIVersion';
   rtwoptions(i).makevariable   = 'FMI_VER';
   rtwoptions(i).popupstrings   = '2.0';
-  rtwoptions(i).tooltip        = ...
-    ['Specify FMI version for the export'];
+  rtwoptions(i).tooltip        = 'Specify FMI version for the export';
 
   i = i + 1;
   rtwoptions(i).prompt         = 'FMI type:';
@@ -105,8 +102,7 @@
   rtwoptions(i).tlcvariable    = 'FMIType';
   rtwoptions(i).makevariable   = 'FMI_TYPE';
   rtwoptions(i).popupstrings   = 'ModelExchange|CoSimulation';
-  rtwoptions(i).tooltip        = ...
-    ['Specify FMI type for the export (Model Exchange or Co-Simulation)'];
+  rtwoptions(i).tooltip        = 'Specify FMI type for the export (Model Exchange or Co-Simulation)';
 
   i = i + 1;
   rtwoptions(i).prompt         = 'Model author';
@@ -114,8 +110,7 @@
   rtwoptions(i).default        = 'Unknown';
   rtwoptions(i).tlcvariable    = 'ModelAuthor';
   rtwoptions(i).makevariable   = '';
-  rtwoptions(i).tooltip        = ...
-    ['Model author to be written in model description file (modelDescription.xml)'];
+  rtwoptions(i).tooltip        = 'Model author to be written in model description file (modelDescription.xml)';
 
   i = i + 1;
   rtwoptions(i).prompt         = 'Generate black-box FMU';
@@ -123,8 +118,7 @@
   rtwoptions(i).default        = 'off';
   rtwoptions(i).tlcvariable    = 'BlackBoxFMU';
   rtwoptions(i).makevariable   = '';
-  rtwoptions(i).tooltip        = ...
-    ['Check this box to generate a black-box FMU, which only exposes inputs and outputs.'];
+  rtwoptions(i).tooltip        = 'Check this box to generate a black-box FMU, which only exposes inputs and outputs.';
 
   i = i + 1;
   rtwoptions(i).prompt         = 'Include block hierarchy in variable names';
@@ -132,8 +126,7 @@
   rtwoptions(i).default        = 'on';
   rtwoptions(i).tlcvariable    = 'BlockHierarchyNames';
   rtwoptions(i).makevariable   = '';
-  rtwoptions(i).tooltip        = ...
-    ['Check this box to generate block-hierarchical variable names in the XML model description.'];
+  rtwoptions(i).tooltip        = 'Check this box to generate block-hierarchical variable names in the XML model description.';
 
   i = i + 1;
   rtwoptions(i).prompt         = 'Include global block outputs';
@@ -141,8 +134,7 @@
   rtwoptions(i).default        = 'on';
   rtwoptions(i).tlcvariable    = 'IncludeBlockOutputs';
   rtwoptions(i).makevariable   = '';
-  rtwoptions(i).tooltip        = ...
-    ['Check this box to include global block outputs in the XML model description.'];
+  rtwoptions(i).tooltip        = 'Check this box to include global block outputs in the XML model description.';
 
   i = i + 1;
   rtwoptions(i).prompt         = 'Include discrete states (DWork)';
@@ -150,8 +142,7 @@
   rtwoptions(i).default        = 'on';
   rtwoptions(i).tlcvariable    = 'IncludeDWork';
   rtwoptions(i).makevariable   = '';
-  rtwoptions(i).tooltip        = ...
-    ['Check this box to include discrete states and modes in the XML model description. This feature is mainly for debugging.'];
+  rtwoptions(i).tooltip        = 'Check this box to include discrete states and modes in the XML model description. This feature is mainly for debugging.';
 
   i = i + 1;
   rtwoptions(i).prompt         = 'Export image (.png) of Simulink model to FMU resources';
@@ -159,8 +150,7 @@
   rtwoptions(i).default        = 'on';
   rtwoptions(i).tlcvariable    = 'ExportImage';
   rtwoptions(i).makevariable   = '';
-  rtwoptions(i).tooltip        = ...
-    ['Check this box to export an image of the Simulink model to the FMU resources.'];
+  rtwoptions(i).tooltip        = 'Check this box to export an image of the Simulink model to the FMU resources.';
 
   i = i + 1;
   rtwoptions(i).prompt         = 'Copy Simulink model to FMU resources';
@@ -168,8 +158,7 @@
   rtwoptions(i).default        = 'off';
   rtwoptions(i).tlcvariable    = 'CopyModel';
   rtwoptions(i).makevariable   = '';
-  rtwoptions(i).tooltip        = ...
-    ['Check this box to copy the Simulink model to the FMU resources.'];
+  rtwoptions(i).tooltip        = 'Check this box to copy the Simulink model to the FMU resources.';
 
   i = i + 1;
 if ispc
@@ -184,29 +173,28 @@ end
   rtwoptions(i).tooltip        = ...
     ['Check this box to load internal S-functions from pre-compiled binary MEX files instead of using stand-alone compilation of S-function sources.'];
 
-  i = i + 1;
-  rtwoptions(i).prompt         = 'Compiler optimization flags';
-  rtwoptions(i).type           = 'Edit';
-if ispc
-  rtwoptions(i).default        = '/O2 /Oy-';
-else
-  rtwoptions(i).default        = '-O2';
-end
-  rtwoptions(i).tlcvariable    = '';
-  rtwoptions(i).makevariable   = 'FMI_OPT_OPTS';
-  rtwoptions(i).tooltip        = ...
-    ['Optimization flags to be used for compilation.'];
-
   % Override the default setting for model name prefixing because
   % the generated S-function is typically used in multiple models.
   i = i + 1;
   rtwoptions(i).default       = 'on';
   rtwoptions(i).tlcvariable   = 'PrefixModelToSubsysFcnNames';
 
-i = i + 1;
-  rtwoptions(i).prompt        = 'CMake Generator';
+  i = i + 1;
+  rtwoptions(i).prompt        = 'CMake';
+  rtwoptions(i).type          = 'Category';
+  rtwoptions(i).enable        = 'on';
+  rtwoptions(i).default       = 4;   % number of items under this category
+                                     % excluding this one.
+  rtwoptions(i).popupstrings  = '';  % At the first item, user has to 
+  rtwoptions(i).tlcvariable   = '';  % initialize all supported fields
+  rtwoptions(i).tooltip       = '';
+  rtwoptions(i).callback      = '';
+  rtwoptions(i).makevariable  = '';
+
+  i = i + 1;
+  rtwoptions(i).prompt        = 'CMake generator';
   rtwoptions(i).type          = 'Popup';
-  rtwoptions(i).default       = 'Visual Studio 14 2015 Win64';
+  rtwoptions(i).default       = grtfmi_cmake_default_generator();
   rtwoptions(i).popupstrings  = ['Visual Studio 16 2019|' ...
                                 'Visual Studio 15 2017|' ...
                                 'Visual Studio 15 2017 Win64|' ...
@@ -230,12 +218,30 @@ i = i + 1;
   rtwoptions(i).tooltip       = 'CMake generator to build the shared library';
 
   i = i + 1;
-  rtwoptions(i).prompt        = 'CMake Command';
+  rtwoptions(i).prompt        = 'CMake command';
   rtwoptions(i).type          = 'Edit';
-  rtwoptions(i).default       = 'cmake';
+  rtwoptions(i).default       = '';
   rtwoptions(i).tlcvariable   = 'CMakeCommand';
-  rtwoptions(i).tooltip       = 'CMake command or path to the executable';
+  rtwoptions(i).tooltip       = 'CMake command or path the executable (leave empty for default command)';
 
+  i = i + 1;
+  rtwoptions(i).prompt        = 'Compiler optimization level';
+  rtwoptions(i).type          = 'Popup';
+  rtwoptions(i).default       = 'Disabled';
+  rtwoptions(i).popupstrings  = ['Disabled|' ...
+                                'Minimize size|' ...
+                                'Maximize speed|' ...
+                                'Full optimization|' ...
+                                'Custom'];
+  rtwoptions(i).tlcvariable   = 'CMakeCompilerOptimizationLevel';
+  rtwoptions(i).tooltip       = 'Compiler optimization level';
+
+  i = i + 1;
+  rtwoptions(i).prompt        = 'Custom compiler optimization flags';
+  rtwoptions(i).type          = 'Edit';
+  rtwoptions(i).default       = '';
+  rtwoptions(i).tlcvariable   = 'CMakeCompilerOptimizationFlags';
+  rtwoptions(i).tooltip       = 'Custom compiler optimization flags';
 
   rtwgensettings.IsRTWSfcn = 'yes';
 
