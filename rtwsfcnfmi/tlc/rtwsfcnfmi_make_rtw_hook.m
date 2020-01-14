@@ -20,22 +20,28 @@ switch hookMethod
         assert(status == 0, ['Failed to run CMake command: ' command '. ' ...
             'Install CMake (https://cmake.org/) and set the CMake command in ' ...
             'Configuration Parameters > Code Generation > CMake Build > CMake Command.'])
+          
+        custom_source = get_param(gcs, 'CustomSource');
+        custom_source = which(custom_source);
         
-        disp('### Running CMake generator')
         solver = buildOpts.solver;
         if ~strcmp(solver, {'ode1', 'ode2', 'ode3', 'ode4', 'ode5', 'ode8', 'ode14x'})
             solver = 'ode1';  % use ode1 for model exchange
         end
-        custom_source = get_param(gcs, 'CustomSource');
-        custom_source = which(custom_source);
-        status = system(['"' command '"' ...
-        ' -G "' generator '"' ...
-        ' -DMODEL_NAME='     strrep(modelName,      '\', '/')     ...
-        ' -DSOLVER='         solver                               ...
-        ' -DRTW_DIR="'       strrep(pwd,            '\', '/') '"' ...
-        ' -DMATLAB_ROOT="'   strrep(matlabroot,     '\', '/') '"' ...
-        ' -DCUSTOM_SOURCE="' strrep(custom_source,  '\', '/') '"' ...
-        ' "'                 strrep(cmakelists_dir, '\', '/') '"']);
+        
+        % write the CMakeCache.txt file
+        fid = fopen('CMakeCache.txt', 'w');
+        fprintf(fid, 'MODEL_NAME:STRING=%s\n', modelName);
+        fprintf(fid, 'SOLVER:STRING=%s\n', solver);
+        fprintf(fid, 'RTW_DIR:STRING=%s\n', strrep(pwd, '\', '/'));
+        fprintf(fid, 'MATLAB_ROOT:STRING=%s\n', strrep(matlabroot, '\', '/'));
+        fprintf(fid, 'CUSTOM_SOURCE:STRING=%s\n', custom_source);
+        %fprintf(fid, 'COMPILER_OPTIMIZATION_LEVEL:STRING=%s\n', get_param(gcs, 'CMakeCompilerOptimizationLevel'));
+        %fprintf(fid, 'COMPILER_OPTIMIZATION_FLAGS:STRING=%s\n', get_param(gcs, 'CMakeCompilerOptimizationFlags'));
+        fclose(fid);
+        
+        disp('### Generating project')
+        status = system(['"' command '" -G "' generator '" "' strrep(cmakelists_dir, '\', '/') '"']);
         assert(status == 0, 'Failed to run CMake generator');
 
         disp('### Building FMU')
