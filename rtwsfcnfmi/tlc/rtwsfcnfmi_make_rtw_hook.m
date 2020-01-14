@@ -12,15 +12,10 @@ switch hookMethod
         pathstr = which('rtwsfcnfmi.tlc');
         [tlc_dir, ~, ~] = fileparts(pathstr);
         [cmakelists_dir, ~, ~] = fileparts(tlc_dir);
-        command   = get_param(modelName, 'CMakeCommand');
+        command = get_param(modelName, 'CMakeCommand');
+        command = grtfmi_find_cmake(command);
         generator = get_param(modelName, 'CMakeGenerator');
-
-        % check for cmake executable
-        status = system(command);
-        assert(status == 0, ['Failed to run CMake command: ' command '. ' ...
-            'Install CMake (https://cmake.org/) and set the CMake command in ' ...
-            'Configuration Parameters > Code Generation > CMake Build > CMake Command.'])
-          
+  
         custom_source = get_param(gcs, 'CustomSource');
         custom_source = which(custom_source);
         
