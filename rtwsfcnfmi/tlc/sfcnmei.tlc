@@ -6,6 +6,87 @@
 %%           sfcn_fmi.h
 %%
 
+%openfile deffile = "sfcn_fmi.h"
+%with CompiledModel
+/*
+ * Model-specific defintions for "%<OrigName>"
+ *
+ * Generated on : %<GeneratedOn>
+ */
+
+#define MODEL_GUID "%<GUID>"
+
+/* Solver settings selected in Simulink */
+%if SolverType == "VariableStep"
+#define SFCN_FMI_IS_VARIABLE_STEP_SOLVER 1
+  %assign fixedstep = "0.0"
+  %assign extrapolation = "0"
+  %assign newtoniter = "0"
+  %assign solvermode = "0"
+%else
+#define  SFCN_FMI_IS_VARIABLE_STEP_SOLVER 0
+  %with FixedStepOpts
+    %assign fixedstep = %<FixedStep>
+    %assign extrapolation = %<ExtrapolationOrder>
+    %assign newtoniter = %<NumberNewtonIterations>
+    %if SolverMode == "MultiTasking"
+      %assign solvermode = "1"
+    %else
+      %assign solvermode = "0"
+    %endif
+  %endwith
+%endif
+#define SFCN_FMI_FIXED_STEP_SIZE %<fixedstep>
+#define SFCN_FMI_IS_MT %<solvermode>
+#define SFCN_FMI_EXTRAPOLATION_ORDER %<extrapolation>
+#define SFCN_FMI_NEWTON_ITER %<newtoniter>
+
+/* Model sizes */
+#define SFCN_FMI_ZC_LENGTH %<ZCVectorlength>
+#define SFCN_FMI_NBR_INPUTS %<nbrInputsScalar>
+#define SFCN_FMI_NBR_OUTPUTS %<nbrOutputsScalar>
+#define SFCN_FMI_NBR_PARAMS %<nbrParamsScalar>
+#define SFCN_FMI_NBR_BLOCKIO %<nbrBlockIOScalar>
+#define SFCN_FMI_NBR_DWORK %<nbrDWorkScalar>
+
+/* Model identifier */
+#define SFCN_FMI_MODEL_IDENTIFIER "%<OrigName>_sf"
+
+/* Loading of MEX binaries, path to MATLAB bin */
+#define SFCN_FMI_LOAD_MEX %<LoadBinaryMEX>
+%assign Matlab_bin = FEVAL("makeMatlabBin")
+#define SFCN_FMI_MATLAB_BIN "%<Matlab_bin>"
+%assign numNonInlinedCMEXSFcns = 0
+%if ISFIELD(::CompiledModel, "NumSFunctionNameCounts")
+  %foreach id = NumSFunctionNameCounts
+    %if IsNoninlinedCMEXSfunction(SFunctionNameCount[id].Name)
+      %assign numNonInlinedCMEXSFcns = numNonInlinedCMEXSFcns + 1
+    %endif
+  %endforeach
+%endif
+%if numNonInlinedCMEXSFcns > 0
+  %assign isFirst = TLC_TRUE
+#define SFCN_FMI_NBR_MEX %<numNonInlinedCMEXSFcns>
+const char* SFCN_FMI_MEX_NAMES[%<numNonInlinedCMEXSFcns>] = {
+  %foreach id = NumSFunctionNameCounts
+    %if IsNoninlinedCMEXSfunction(SFunctionNameCount[id].Name)
+      %if isFirst
+"%<SFunctionNameCount[id].Name>.%<mexext>"
+      %else
+,"%<SFunctionNameCount[id].Name>.%<mexext>"
+      %endif
+      %assign isFirst = TLC_FALSE
+    %endif
+  %endforeach
+};
+%else
+#define SFCN_FMI_NBR_MEX 0
+const char* SFCN_FMI_MEX_NAMES[1] = {""};
+%endif
+
+%endwith
+%closefile deffile
+
 %openfile deffile = "sfcn_fmi.c"
 %with CompiledModel
 /*
@@ -34,9 +115,6 @@ extern void* allocateMemory0(size_t nobj, size_t size);
 #define MODEL_IDENTIFIER %<OrigName>_sf
 #include "fmiModelFunctions.h"
 %endif
-
-/* Define GUID string */
-char* GUIDString = "%<GUID>";
 
 %with GlobalScope
   %assign parType = tParametersType
@@ -80,72 +158,6 @@ char* GUIDString = "%<GUID>";
 
 /* Include Simulink Coder-generated model code */
 #include "%<OrigName>_sf.c"
-
-/* Solver settings selected in Simulink */
-%if SolverType == "VariableStep"
-int_T SFCN_FMI_IS_VARIABLE_STEP_SOLVER = 1;
-  %assign fixedstep = "0.0"
-  %assign extrapolation = "0"
-  %assign newtoniter = "0"
-  %assign solvermode = "0"
-%else
-int_T  SFCN_FMI_IS_VARIABLE_STEP_SOLVER = 0;
-  %with FixedStepOpts
-    %assign fixedstep = %<FixedStep>
-    %assign extrapolation = %<ExtrapolationOrder>
-    %assign newtoniter = %<NumberNewtonIterations>
-    %if SolverMode == "MultiTasking"
-      %assign solvermode = "1"
-    %else
-      %assign solvermode = "0"
-    %endif
-  %endwith
-%endif
-real_T SFCN_FMI_FIXED_STEP_SIZE = %<fixedstep>;
-int_T  SFCN_FMI_IS_MT = %<solvermode>;
-int_T  SFCN_FMI_EXTRAPOLATION_ORDER = %<extrapolation>;
-int_T  SFCN_FMI_NEWTON_ITER = %<newtoniter>;
-/* Model sizes */
-int_T SFCN_FMI_ZC_LENGTH   = %<ZCVectorlength>;
-int_T SFCN_FMI_NBR_INPUTS  = %<nbrInputsScalar>;
-int_T SFCN_FMI_NBR_OUTPUTS = %<nbrOutputsScalar>;
-int_T SFCN_FMI_NBR_PARAMS  = %<nbrParamsScalar>;
-int_T SFCN_FMI_NBR_BLOCKIO = %<nbrBlockIOScalar>;
-int_T SFCN_FMI_NBR_DWORK   = %<nbrDWorkScalar>;
-/* Model identifier */
-char* SFCN_FMI_MODEL_IDENTIFIER = "%<OrigName>_sf";
-
-/* Loading of MEX binaries, path to MATLAB bin */
-int_T SFCN_FMI_LOAD_MEX = %<LoadBinaryMEX>;
-%assign Matlab_bin = FEVAL("makeMatlabBin")
-const char* SFCN_FMI_MATLAB_BIN = "%<Matlab_bin>";
-%assign numNonInlinedCMEXSFcns = 0
-%if ISFIELD(::CompiledModel, "NumSFunctionNameCounts")
-  %foreach id = NumSFunctionNameCounts
-    %if IsNoninlinedCMEXSfunction(SFunctionNameCount[id].Name)
-      %assign numNonInlinedCMEXSFcns = numNonInlinedCMEXSFcns + 1
-    %endif
-  %endforeach
-%endif
-%if numNonInlinedCMEXSFcns > 0
-  %assign isFirst = TLC_TRUE
-int_T SFCN_FMI_NBR_MEX = %<numNonInlinedCMEXSFcns>;
-char* SFCN_FMI_MEX_NAMES[%<numNonInlinedCMEXSFcns>] = {
-  %foreach id = NumSFunctionNameCounts
-    %if IsNoninlinedCMEXSfunction(SFunctionNameCount[id].Name)
-      %if isFirst
-"%<SFunctionNameCount[id].Name>.%<mexext>"
-      %else
-,"%<SFunctionNameCount[id].Name>.%<mexext>"
-      %endif
-      %assign isFirst = TLC_FALSE
-    %endif
-  %endforeach
-};
-%else
-int_T SFCN_FMI_NBR_MEX = 0;
-char* SFCN_FMI_MEX_NAMES[1] = {""};
-%endif
 
 /* Register model callback routines in SimStruct */
 void sfcn_fmi_registerMdlCallbacks_(SimStruct*S)
