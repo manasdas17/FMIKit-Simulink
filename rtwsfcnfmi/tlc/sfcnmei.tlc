@@ -6,10 +6,10 @@
 %%           sfcn_fmi.h
 %%
 
-%openfile deffile = "sfcn_fmi.h"
+%openfile deffile = "sfcn_fmi.c"
 %with CompiledModel
 /*
- * sfcn_fmi.h
+ * sfcn_fmi.c
  *
  *  Model-specific code required to build FMI executable 
  *  from Simulink model "%<OrigName>".
@@ -17,8 +17,10 @@
  * Generated on : %<GeneratedOn>
  */
 
-#ifndef SFCN_FMI_H
-#define SFCN_FMI_H
+#include <stddef.h>
+
+ /* FMI memory allocation with zero initialization */
+extern void* allocateMemory0(size_t nobj, size_t size);
 
 %if FMIVersion == "2.0"
 /* Include header for FMI 2.0 */
@@ -364,8 +366,6 @@ int_T _ssSetOutputPortVectorDimension(SimStruct *S, int_T port, int_T m)
   extern int_T _ssSetOutputPortVectorDimension_FMI(SimStruct *S, int_T port, int_T m);
   return _ssSetOutputPortVectorDimension_FMI(S, port, m);
 } 
-#endif
-
 #endif
 
 %endwith

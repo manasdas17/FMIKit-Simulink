@@ -56,8 +56,8 @@ set(MODEL_SOURCES
   ../include/fmi2FunctionTypes.h
   ../include/fmi2TypesPlatform.h
   c/fmi.h
-  c/fmi2Functions.c
   c/fmi2.c
+  "${RTW_DIR}/sfcn_fmi.c"
   "${RTW_DIR}/${MODEL_NAME}_sf_data.c"
   "${RTW_DIR}/rtGetInf.c"
   "${RTW_DIR}/rtGetNaN.c"
