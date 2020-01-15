@@ -47,26 +47,6 @@
 #define SFCN_FMI_MAX_TIME	1e100
 #define SFCN_FMI_EPS		2e-13	/* Not supported with discrete sample times smaller than this */
 
-extern char* GUIDString;
-
-/* Model-specific variables and functions */
-extern char* SFCN_FMI_MODEL_IDENTIFIER;
-extern int_T SFCN_FMI_IS_VARIABLE_STEP_SOLVER;
-extern real_T SFCN_FMI_FIXED_STEP_SIZE;
-extern int_T SFCN_FMI_EXTRAPOLATION_ORDER;
-extern int_T SFCN_FMI_NEWTON_ITER;
-extern int_T SFCN_FMI_IS_MT;
-extern int_T SFCN_FMI_ZC_LENGTH;
-extern int_T SFCN_FMI_NBR_INPUTS;
-extern int_T SFCN_FMI_NBR_OUTPUTS;
-extern int_T SFCN_FMI_NBR_PARAMS;
-extern int_T SFCN_FMI_NBR_BLOCKIO;
-extern int_T SFCN_FMI_NBR_DWORK;
-extern int_T SFCN_FMI_LOAD_MEX;
-extern const char* SFCN_FMI_MATLAB_BIN;
-extern int_T SFCN_FMI_NBR_MEX;
-extern char* SFCN_FMI_MEX_NAMES[];
-
 extern void  sfcn_fmi_registerMdlCallbacks_(SimStruct* S);
 extern void  sfcn_fmi_registerRTModelCallbacks_(SimStruct*S);
 extern void  sfcn_fmi_assignInputs_(SimStruct* S, void** inputs);

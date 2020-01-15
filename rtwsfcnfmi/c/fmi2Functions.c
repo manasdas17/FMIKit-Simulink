@@ -11,6 +11,7 @@
 -----------------------------------------------------------
 */
 
+#include "sfcn_fmi.h"
 #include "fmi.h"
 #include "fmi2Functions.h"	/* Official FMI 2.0 header */
 
@@ -162,8 +163,8 @@ fmi2Component fmi2Instantiate(fmi2String	instanceName,
 	model->functions = functions;
 
 	/* verify GUID */
-	if (strcmp(GUID, GUIDString) != 0) {
-		logger(model, instanceName, fmi2Error, "", "Invalid GUID: %s, expected %s\n", GUID, GUIDString);
+	if (strcmp(GUID, MODEL_GUID) != 0) {
+		logger(model, instanceName, fmi2Error, "", "Invalid GUID: %s, expected %s\n", GUID, MODEL_GUID);
 		functions->freeMemory(model);
 		return NULL;
 	}
