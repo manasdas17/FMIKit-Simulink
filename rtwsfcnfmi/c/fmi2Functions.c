@@ -48,12 +48,6 @@ static fmi2String strDup(const fmi2CallbackFunctions *functions, fmi2String s);
 /* ------------------ ODE solver functions ------------------- */
 const char *RT_MEMORY_ALLOCATION_ERROR = "Error when allocating SimStruct solver data.";
 
-/* Empty callback for use as mdlProjection in ODE solver */
-void mdlNoOpFunc(SimStruct *S)
-{
-	return;
-}
-
 extern void rt_InitInfAndNaN(size_t realSize);
 
 /* Globals used for child S-functions */

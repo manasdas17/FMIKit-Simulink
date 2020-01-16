@@ -208,7 +208,12 @@ void sfcn_fmi_registerMdlCallbacks_(SimStruct*S)
 }
 
 /* Register SolverInfo model method pointers */
-extern void mdlNoOpFunc(SimStruct* S);
+
+/* Empty callback for use as mdlProjection in ODE solver */
+static void mdlNoOpFunc(SimStruct *S) {
+	return;
+}
+
 void sfcn_fmi_registerRTModelCallbacks_(SimStruct*S)
 {
 #if defined(MDL_DERIVATIVES)
