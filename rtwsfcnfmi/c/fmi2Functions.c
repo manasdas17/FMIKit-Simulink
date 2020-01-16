@@ -16,49 +16,6 @@
 #include "fmi2Functions.h"	/* Official FMI 2.0 header */
 #include "sfunction.h"
 
-/* Model status */
-typedef enum {
-	modelInstantiated,
-	modelInitializationMode,
-	modelEventMode,
-	modelContinuousTimeMode,
-	modelTerminated
-} ModelStatus;
-
-/* Model data structure */
-typedef struct {
-	const char* instanceName;
-	int loggingOn;
-	SimStruct* S;
-	real_T* dX;
-	real_T* oldZC;
-	int_T* numSampleHits;
-	int_T fixed_in_minor_step_offset_tid;
-	real_T nextHit_tid0;
-	void** inputs;
-	void** outputs;
-	void** parameters;
-	void** blockoutputs;
-	void** dwork;
-	void* functions;  // TODO: move to userData
-	real_T lastGetTime;
-	int shouldRecompute;
-	int isCoSim;
-	int isDiscrete;
-	int hasEnteredContMode;
-	real_T time;
-	real_T nbrSolverSteps;
-	void* eventInfo;  // TODO: move to userData
-	ModelStatus status;
-#if defined(_MSC_VER)
-	HINSTANCE* mexHandles;
-#else
-	void** mexHandles;
-#endif
-	fmi2Real* inputDerivatives;
-	fmi2Real derivativeTime;
-} Model;
-
 
 /* -------------- Macro to check if initialized -------------- */
 
