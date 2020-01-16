@@ -2,6 +2,15 @@
 #include "sfcn_fmi.h"
 #include "sfunction.h"
 
+void copyPerTaskSampleHits(SimStruct* S) {
+	int_T m, n;
+
+	for (m = 1; m < S->sizes.numSampleTimes; m++) {
+		for (n = 0; n < S->sizes.numSampleTimes; n++) {
+			S->mdlInfo->perTaskSampleHits[n + m * (S->sizes.numSampleTimes)] = S->mdlInfo->sampleHits[n];
+		}
+	}
+}
 
 extern void* allocateMemory0(size_t nobj, size_t size);
 
@@ -522,3 +531,34 @@ void setSampleStartValues(Model* m)
 		copyPerTaskSampleHits(m->S);
 	}
 }
+
+/* Setup of port dimensions in stand-alone mode (not including simulink.c) */
+
+int_T _ssSetInputPortMatrixDimensions_FMI(SimStruct *S, int_T port, int_T m, int_T n)
+{
+	S->portInfo.inputs[port].width = ((m == DYNAMICALLY_SIZED) || (n == DYNAMICALLY_SIZED)) ? DYNAMICALLY_SIZED : (m * n);
+
+	return(1);
+}
+
+int_T _ssSetOutputPortMatrixDimensions_FMI(SimStruct *S, int_T port, int_T m, int_T n)
+{
+	S->portInfo.outputs[port].width = ((m == DYNAMICALLY_SIZED) || (n == DYNAMICALLY_SIZED)) ? DYNAMICALLY_SIZED : (m * n);
+
+	return(1);
+}
+
+int_T _ssSetInputPortVectorDimension_FMI(SimStruct *S, int_T port, int_T m)
+{
+	S->portInfo.inputs[port].width = m;
+
+	return(1);
+}
+
+int_T _ssSetOutputPortVectorDimension_FMI(SimStruct *S, int_T port, int_T m)
+{
+	S->portInfo.outputs[port].width = m;
+
+	return(1);
+}
+
