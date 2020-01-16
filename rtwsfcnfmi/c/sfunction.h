@@ -51,6 +51,9 @@ typedef struct {
 	real_T derivativeTime;
 } Model;
 
+/* Function to copy per-task sample hits */
+void copyPerTaskSampleHits(SimStruct* S);
+
 SimStruct *CreateSimStructForFMI(const char* instanceName);
 
 typedef void(*FreeMemoryCallback)(void*);

@@ -1314,35 +1314,6 @@ fmi2Status fmi2GetStringStatus(fmi2Component c, const fmi2StatusKind s, fmi2Stri
 	return fmi2Discard;
 }
 
-/* Setup of port dimensions in stand-alone mode (not including simulink.c) */
-int_T _ssSetInputPortMatrixDimensions_FMI(SimStruct *S, int_T port, int_T m, int_T n)
-{
-    S->portInfo.inputs[port].width     = ((m == DYNAMICALLY_SIZED) || (n == DYNAMICALLY_SIZED))? DYNAMICALLY_SIZED : (m * n);
-
-    return(1);
-}
-
-int_T _ssSetOutputPortMatrixDimensions_FMI(SimStruct *S, int_T port, int_T m, int_T n)
-{
-    S->portInfo.outputs[port].width    = ((m == DYNAMICALLY_SIZED) || (n == DYNAMICALLY_SIZED))? DYNAMICALLY_SIZED : (m * n);
-
-    return(1);
-}
-
-int_T _ssSetInputPortVectorDimension_FMI(SimStruct *S, int_T port, int_T m)
-{
-    S->portInfo.inputs[port].width = m;
-
-    return(1);
-}
-
-int_T _ssSetOutputPortVectorDimension_FMI(SimStruct *S, int_T port, int_T m)
-{
-    S->portInfo.outputs[port].width = m;
-
-    return(1);
-}
-
 /* ----------------- Local function definitions ----------------- */
 
 /* Most FMI environments pass in calloc, but zero initialization was

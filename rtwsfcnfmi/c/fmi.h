@@ -98,21 +98,6 @@ typedef enum {
 
 /* ----------------------------------------------------------- */
 
-/* --------- Function to copy per-task sample hits ----------- */
-
-void copyPerTaskSampleHits(SimStruct* S)
-{
-	int_T m, n;
-
-	for (m=1; m<S->sizes.numSampleTimes; m++) {
-		for (n=0; n<S->sizes.numSampleTimes; n++) {
-			S->mdlInfo->perTaskSampleHits[n + m * (S->sizes.numSampleTimes)] = S->mdlInfo->sampleHits[n];
-		}
-	}
-}
-
-/* ----------------------------------------------------------- */
-
 /* -------- Function for double precision comparison --------- */
 
 int isEqual(double a, double b)
