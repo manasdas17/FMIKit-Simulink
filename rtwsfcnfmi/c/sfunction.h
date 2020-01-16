@@ -6,6 +6,8 @@
 
 #include "simstruc.h"
 
+#define SFCN_FMI_EPS 2e-13	/* Not supported with discrete sample times smaller than this */
+
 /* Model status */
 typedef enum {
 	modelInstantiated,
@@ -54,12 +56,11 @@ SimStruct *CreateSimStructForFMI(const char* instanceName);
 typedef void(*FreeMemoryCallback)(void*);
 
 void FreeSimStruct(SimStruct *S, FreeMemoryCallback freeMemory);
-
 void resetSimStructVectors(SimStruct *S);
-
 void allocateSimStructVectors(Model* m);
+void setSampleStartValues(Model* m);
 
-/* ------------------ ODE solver functions ------------------- */
+/* ODE solver functions */
 extern void rt_CreateIntegrationData(SimStruct *S);
 extern void rt_DestroyIntegrationData(SimStruct *S);
 extern void rt_UpdateContinuousStates(SimStruct *S);

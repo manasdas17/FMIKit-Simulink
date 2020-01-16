@@ -45,9 +45,6 @@ static void logger(fmi2Component c, fmi2String instanceName, fmi2Status status,
 				   fmi2String category, fmi2String message, ...);
 static fmi2String strDup(const fmi2CallbackFunctions *functions, fmi2String s);
 
-/* --------- Allocation and destruction of SimStruct --------- */
-static void setSampleStartValues(Model* m);
-
 /* ------------------ ODE solver functions ------------------- */
 const char *RT_MEMORY_ALLOCATION_ERROR = "Error when allocating SimStruct solver data.";
 
@@ -1344,33 +1341,6 @@ int_T _ssSetOutputPortVectorDimension_FMI(SimStruct *S, int_T port, int_T m)
     S->portInfo.outputs[port].width = m;
 
     return(1);
-}
-
-/* ------------------- Allocate SimStruct  -------------------- */
-
-static void setSampleStartValues(Model* m)
-{
-	int i;
-
-	m->fixed_in_minor_step_offset_tid = -1;
-	for (i=0;i<m->S->sizes.numSampleTimes;i++) {
-		m->S->stInfo.sampleTimeTaskIDs[i] = i; /* Simple mapping, only considering root SimStruct for the moment */
-		m->S->mdlInfo->t[i] = m->S->stInfo.offsetTimes[i];
-		if (m->S->stInfo.sampleTimes[i] < SFCN_FMI_EPS) {
-			if (m->S->stInfo.offsetTimes[i] < FIXED_IN_MINOR_STEP_OFFSET - SFCN_FMI_EPS) {
-				m->S->mdlInfo->sampleHits[i] = 1;		/* Continuous sample time */
-			} else {
-				m->fixed_in_minor_step_offset_tid = i;	/* FIXED_IN_MINOR_STEP_OFFSET */
-			}
-		} else {
-			if (i==0) {
-				m->isDiscrete = fmi2True;			/* Purely discrete */
-			}
-		}
-	}
-	if (SFCN_FMI_LOAD_MEX) {
-		copyPerTaskSampleHits(m->S);
-	}
 }
 
 /* ----------------- Local function definitions ----------------- */
