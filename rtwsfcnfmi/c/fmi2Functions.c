@@ -93,10 +93,8 @@ static void allocateSimStructVectors(Model* m);
 static void setSampleStartValues(Model* m);
 
 /* ------------------ ODE solver functions ------------------- */
-extern void rt_CreateIntegrationData(SimStruct *S);
-extern void rt_DestroyIntegrationData(SimStruct *S);
-extern void rt_UpdateContinuousStates(SimStruct *S);
 const char *RT_MEMORY_ALLOCATION_ERROR = "Error when allocating SimStruct solver data.";
+
 /* Empty callback for use as mdlProjection in ODE solver */
 void mdlNoOpFunc(SimStruct *S)
 {
