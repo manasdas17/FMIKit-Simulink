@@ -57,6 +57,8 @@ void FreeSimStruct(SimStruct *S, FreeMemoryCallback freeMemory);
 
 void resetSimStructVectors(SimStruct *S);
 
+void allocateSimStructVectors(Model* m);
+
 /* ------------------ ODE solver functions ------------------- */
 extern void rt_CreateIntegrationData(SimStruct *S);
 extern void rt_DestroyIntegrationData(SimStruct *S);

@@ -92,6 +92,153 @@ static int_T setNumDWork_FMI(SimStruct* S, int_T numDWork)
 	return 1;
 }
 
+/* Common macro to allocate input port */
+#define FMI_INPORT(type, value) {										            \
+	int i;																			\
+	type** inputPtrs;																\
+	type* inputSignals;																\
+	inputPtrs    = (type**) allocateMemory0(width, sizeof(type*));					\
+	inputSignals = (type*) allocateMemory0(width, sizeof(type));					\
+	for (i=0; i<width; i++) {														\
+		inputSignals[i] = value;													\
+		inputPtrs[i] = &(inputSignals[i]);											\
+	}																				\
+	arg1->portInfo.inputs[port].signal.ptrs = (InputPtrsType) inputPtrs;							\
+}
+
+static int_T SetInputPortDimensionInfoFcn_FMI(SimStruct *arg1, int_T port)
+{
+	int i;
+	void** busInputPtrs;
+	void*  busInputObject;
+	int_T width = arg1->portInfo.inputs[port].width;
+
+	/* Attempt allocating bus object for port */
+	busInputObject = sfcn_fmi_allocateBusObject(1, port, width);
+	if (busInputObject != 0) {
+		busInputPtrs = (void**)allocateMemory0(width, sizeof(void*));
+		busInputPtrs[0] = busInputObject;
+		for (i = 1; i<width; i++) {
+			busInputPtrs[i] = sfcn_fmi_allocateBusObject(1, port, width);
+		}
+		arg1->portInfo.inputs[port].signal.ptrs = (InputPtrsType)busInputPtrs;
+		return 1;
+	}
+
+	/* Allocate port signal vectors */
+	switch (arg1->portInfo.inputs[port].dataTypeId) {
+	case SS_DOUBLE:   /* real_T    */
+	{
+		FMI_INPORT(real_T, 0.0);
+	}
+	break;
+	case SS_SINGLE:   /* real32_T  */
+		FMI_INPORT(real32_T, 0.0);
+		break;
+	case SS_INTEGER:  /* int_T */
+	{
+		FMI_INPORT(int_T, 0);
+	}
+	break;
+	case SS_INT8:     /* int8_T    */
+	{
+		FMI_INPORT(int8_T, 0);
+	}
+	break;
+	case SS_UINT8:    /* uint8_T   */
+	{
+		FMI_INPORT(uint8_T, 0);
+	}
+	break;
+	case SS_INT16:    /* int16_T   */
+	{
+		FMI_INPORT(int16_T, 0);
+	}
+	break;
+	case SS_UINT16:   /* uint16_T  */
+	{
+		FMI_INPORT(uint16_T, 0);
+	}
+	break;
+	case SS_INT32:    /* int32_T   */
+	{
+		FMI_INPORT(int32_T, 0);
+	}
+	break;
+	case SS_UINT32:   /* uint32_T  */
+	{
+		FMI_INPORT(uint32_T, 0);
+	}
+	break;
+	case SS_BOOLEAN:  /* boolean_T */
+	{
+		FMI_INPORT(boolean_T, false);
+	}
+	break;
+	default:		/* default real_T */
+	{
+		FMI_INPORT(real_T, 0.0);
+	}
+	break;
+	}
+
+	return 1;
+};
+
+/* SimStruct callback functions to setup dimensions and allocate ports */
+
+static int_T SetOutputPortDimensionInfoFcn_FMI(SimStruct *arg1, int_T port)
+{
+	void*  busOutputVector;
+	int_T width = arg1->portInfo.outputs[port].width;
+
+	/* Attempt allocating bus vector for port */
+	busOutputVector = sfcn_fmi_allocateBusObject(0, port, width);
+	if (busOutputVector != 0) {
+		arg1->portInfo.outputs[port].signalVect = busOutputVector;
+		return 1;
+	}
+
+	/* Allocate port signal vector */
+	switch (arg1->portInfo.outputs[port].dataTypeId) {
+	case SS_DOUBLE:   /* real_T    */
+		arg1->portInfo.outputs[port].signalVect = (real_T*)allocateMemory0(width, sizeof(real_T));
+		break;
+	case SS_SINGLE:   /* real32_T  */
+		arg1->portInfo.outputs[port].signalVect = (real32_T*)allocateMemory0(width, sizeof(real32_T));
+		break;
+	case SS_INTEGER:  /* int_T */
+		arg1->portInfo.outputs[port].signalVect = (int_T*)allocateMemory0(width, sizeof(int_T));
+		break;
+	case SS_INT8:     /* int8_T    */
+		arg1->portInfo.outputs[port].signalVect = (int8_T*)allocateMemory0(width, sizeof(int8_T));
+		break;
+	case SS_UINT8:    /* uint8_T   */
+		arg1->portInfo.outputs[port].signalVect = (uint8_T*)allocateMemory0(width, sizeof(uint8_T));
+		break;
+	case SS_INT16:    /* int16_T   */
+		arg1->portInfo.outputs[port].signalVect = (int16_T*)allocateMemory0(width, sizeof(int16_T));
+		break;
+	case SS_UINT16:   /* uint16_T  */
+		arg1->portInfo.outputs[port].signalVect = (uint16_T*)allocateMemory0(width, sizeof(uint16_T));
+		break;
+	case SS_INT32:    /* int32_T   */
+		arg1->portInfo.outputs[port].signalVect = (int32_T*)allocateMemory0(width, sizeof(int32_T));
+		break;
+	case SS_UINT32:   /* uint32_T  */
+		arg1->portInfo.outputs[port].signalVect = (uint32_T*)allocateMemory0(width, sizeof(uint32_T));
+		break;
+	case SS_BOOLEAN:  /* boolean_T */
+		arg1->portInfo.outputs[port].signalVect = (boolean_T*)allocateMemory0(width, sizeof(boolean_T));
+		break;
+	default:
+		arg1->portInfo.outputs[port].signalVect = (real_T*)allocateMemory0(width, sizeof(real_T));
+		break;
+	}
+
+	return 1;
+}
+
 SimStruct *CreateSimStructForFMI(const char* instanceName)
 {
 	SimStruct *S = (SimStruct*)allocateMemory0(1, sizeof(SimStruct));
@@ -271,6 +418,79 @@ void resetSimStructVectors(SimStruct *S) {
 			break;
 		default:
 			memset(S->work.dWork.sfcn[i].array, 0, (S->work.dWork.sfcn[i].width) * sizeof(real_T));
+			break;
+		}
+	}
+}
+
+void allocateSimStructVectors(Model* m) {
+	int_T i;
+	SimStruct* S = m->S;
+
+	S->states.contStates = (real_T*)allocateMemory0(S->sizes.numContStates + 1, sizeof(real_T));
+	S->states.dX = (real_T*)allocateMemory0(S->sizes.numContStates + 1, sizeof(real_T));
+	/* Store pointer, since it will be changed to point to ODE integration data */
+	m->dX = S->states.dX;
+	S->states.contStateDisabled = (boolean_T*)allocateMemory0(S->sizes.numContStates + 1, sizeof(boolean_T));
+	S->states.discStates = (real_T*)allocateMemory0(S->sizes.numDiscStates + 1, sizeof(real_T));
+#if defined(MATLAB_R2011a_) || defined(MATLAB_R2015a_) || defined(MATLAB_R2017b_)
+	S->states.statesInfo2->absTol = (real_T*)allocateMemory0(S->sizes.numContStates + 1, sizeof(real_T));
+	S->states.statesInfo2->absTolControl = (uint8_T*)allocateMemory0(S->sizes.numContStates + 1, sizeof(uint8_T));
+#endif
+	S->stInfo.sampleTimes = (time_T*)allocateMemory0(S->sizes.numSampleTimes + 1, sizeof(time_T));
+	S->stInfo.offsetTimes = (time_T*)allocateMemory0(S->sizes.numSampleTimes + 1, sizeof(time_T));
+	S->stInfo.sampleTimeTaskIDs = (int_T*)allocateMemory0(S->sizes.numSampleTimes + 1, sizeof(int_T));
+	/* Allocating per-task sample hit matrix */
+	S->mdlInfo->sampleHits = (int_T*)allocateMemory0(S->sizes.numSampleTimes*S->sizes.numSampleTimes + 1, sizeof(int_T));
+	S->mdlInfo->perTaskSampleHits = S->mdlInfo->sampleHits;
+	S->mdlInfo->t = (time_T*)allocateMemory0(S->sizes.numSampleTimes + 1, sizeof(time_T));
+	S->work.modeVector = (int_T*)allocateMemory0(S->sizes.numModes + 1, sizeof(int_T));
+	S->work.iWork = (int_T*)allocateMemory0(S->sizes.numIWork + 1, sizeof(int_T));
+	S->work.pWork = (void**)allocateMemory0(S->sizes.numPWork + 1, sizeof(void*));
+	S->work.rWork = (real_T*)allocateMemory0(S->sizes.numRWork + 1, sizeof(real_T));
+	for (i = 0; i<S->sizes.in.numInputPorts; i++) {
+		SetInputPortDimensionInfoFcn_FMI(S, i);
+	}
+	for (i = 0; i<S->sizes.out.numOutputPorts; i++) {
+		SetOutputPortDimensionInfoFcn_FMI(S, i);
+	}
+	for (i = 0; i<S->sizes.numDWork; i++) {
+		switch (S->work.dWork.sfcn[i].dataTypeId) {
+		case SS_DOUBLE:   /* real_T    */
+			S->work.dWork.sfcn[i].array = (real_T*)allocateMemory0(S->work.dWork.sfcn[i].width, sizeof(real_T));
+			break;
+		case SS_SINGLE:   /* real32_T  */
+			S->work.dWork.sfcn[i].array = (real32_T*)allocateMemory0(S->work.dWork.sfcn[i].width, sizeof(real32_T));
+			break;
+		case SS_INTEGER:  /* int_T */
+			S->work.dWork.sfcn[i].array = (int_T*)allocateMemory0(S->work.dWork.sfcn[i].width, sizeof(int_T));
+			break;
+		case SS_INT8:     /* int8_T    */
+			S->work.dWork.sfcn[i].array = (int8_T*)allocateMemory0(S->work.dWork.sfcn[i].width, sizeof(int8_T));
+			break;
+		case SS_UINT8:    /* uint8_T   */
+			S->work.dWork.sfcn[i].array = (uint8_T*)allocateMemory0(S->work.dWork.sfcn[i].width, sizeof(uint8_T));
+			break;
+		case SS_INT16:    /* int16_T   */
+			S->work.dWork.sfcn[i].array = (int16_T*)allocateMemory0(S->work.dWork.sfcn[i].width, sizeof(int16_T));
+			break;
+		case SS_UINT16:   /* uint16_T  */
+			S->work.dWork.sfcn[i].array = (uint16_T*)allocateMemory0(S->work.dWork.sfcn[i].width, sizeof(uint16_T));
+			break;
+		case SS_INT32:    /* int32_T   */
+			S->work.dWork.sfcn[i].array = (int32_T*)allocateMemory0(S->work.dWork.sfcn[i].width, sizeof(int32_T));
+			break;
+		case SS_UINT32:   /* uint32_T  */
+			S->work.dWork.sfcn[i].array = (uint32_T*)allocateMemory0(S->work.dWork.sfcn[i].width, sizeof(uint32_T));
+			break;
+		case SS_BOOLEAN:  /* boolean_T */
+			S->work.dWork.sfcn[i].array = (boolean_T*)allocateMemory0(S->work.dWork.sfcn[i].width, sizeof(boolean_T));
+			break;
+		case SS_POINTER:  /* void* */
+			S->work.dWork.sfcn[i].array = (void**)allocateMemory0(S->work.dWork.sfcn[i].width, sizeof(void*));
+			break;
+		default:  /* Custom data type registered */
+			S->work.dWork.sfcn[i].array = (void*)allocateMemory0(S->work.dWork.sfcn[i].width, ((int_T*)(S->mdlInfo->dataTypeAccess->dataTypeTable))[S->work.dWork.sfcn[i].dataTypeId - 15]);
 			break;
 		}
 	}

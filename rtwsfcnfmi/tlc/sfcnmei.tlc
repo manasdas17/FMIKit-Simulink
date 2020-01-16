@@ -89,6 +89,8 @@ static const char* SFCN_FMI_MEX_NAMES[1] = {""};
 
 void sfcn_fmi_mxGlobalTunable_(SimStruct* S, int_T create, int_T update);
 
+void* sfcn_fmi_allocateBusObject(int_T isInput, int_T portid, int_T width);
+
 %endif
 
 %endwith
