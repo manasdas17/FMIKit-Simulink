@@ -13,6 +13,9 @@
  *
  * Generated on : %<GeneratedOn>
  */
+#pragma once
+
+#include "simstruc.h"
 
 #define MODEL_GUID "%<GUID>"
 
@@ -81,7 +84,11 @@ static const char* SFCN_FMI_MEX_NAMES[%<numNonInlinedCMEXSFcns>] = {
 };
 %else
 #define SFCN_FMI_NBR_MEX 0
+
 static const char* SFCN_FMI_MEX_NAMES[1] = {""};
+
+void sfcn_fmi_mxGlobalTunable_(SimStruct* S, int_T create, int_T update);
+
 %endif
 
 %endwith
