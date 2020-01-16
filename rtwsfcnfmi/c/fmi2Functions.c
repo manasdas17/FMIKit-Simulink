@@ -91,7 +91,6 @@ static fmi2String strDup(const fmi2CallbackFunctions *functions, fmi2String s);
 /* --------- Allocation and destruction of SimStruct --------- */
 static void allocateSimStructVectors(Model* m);
 static void setSampleStartValues(Model* m);
-static void resetSimStructVectors(SimStruct *S);
 
 /* ------------------ ODE solver functions ------------------- */
 extern void rt_CreateIntegrationData(SimStruct *S);
@@ -1605,63 +1604,6 @@ static void allocateSimStructVectors(Model* m) {
 				break;
 			default:  /* Custom data type registered */
 				S->work.dWork.sfcn[i].array = (void*) allocateMemory0(S->work.dWork.sfcn[i].width, ((int_T*)(S->mdlInfo->dataTypeAccess->dataTypeTable))[S->work.dWork.sfcn[i].dataTypeId-15]);
-				break;
-		}
-	}
-}
-
-static void resetSimStructVectors(SimStruct *S)
-{
-	int_T i;
-
-	memset(S->states.contStates,					0, (S->sizes.numContStates+1)*sizeof(real_T));
-	memset(S->states.dX,							0, (S->sizes.numContStates+1)*sizeof(real_T));
-	memset(S->states.contStateDisabled,				0, (S->sizes.numContStates+1)*sizeof(boolean_T));
-	memset(S->states.discStates,					0, (S->sizes.numDiscStates+1)*sizeof(real_T));
-	memset(S->stInfo.sampleTimes,					0, (S->sizes.numSampleTimes+1)*sizeof(time_T));
-	memset(S->stInfo.offsetTimes,					0, (S->sizes.numSampleTimes+1)*sizeof(time_T));
-	memset(S->stInfo.sampleTimeTaskIDs,				0, (S->sizes.numSampleTimes+1)*sizeof(int_T));
-	memset(S->mdlInfo->sampleHits,					0, (S->sizes.numSampleTimes*S->sizes.numSampleTimes+1)*sizeof(int_T));
-	memset(S->mdlInfo->t,							0, (S->sizes.numSampleTimes+1)*sizeof(time_T));
-	memset(S->work.modeVector,						0, (S->sizes.numModes+1)*sizeof(int_T));
-	memset(S->work.iWork,							0, (S->sizes.numIWork+1)*sizeof(int_T));
-	memset(S->work.pWork,							0, (S->sizes.numPWork+1)*sizeof(void*));
-	memset(S->work.rWork,							0, (S->sizes.numRWork+1)*sizeof(real_T));
-	memset(S->mdlInfo->solverInfo->zcSignalVector,	0, (SFCN_FMI_ZC_LENGTH+1)*sizeof(real_T));
-	for (i=0;i<S->sizes.numDWork;i++) {
-		switch (S->work.dWork.sfcn[i].dataTypeId) {
-			case SS_DOUBLE:   /* real_T    */
-				memset(S->work.dWork.sfcn[i].array, 0, (S->work.dWork.sfcn[i].width)*sizeof(real_T));
-				break;
-			case SS_SINGLE:   /* real32_T  */
-				memset(S->work.dWork.sfcn[i].array, 0, (S->work.dWork.sfcn[i].width)*sizeof(real32_T));
-				break;
-			case SS_INTEGER:  /* int_T */
-				memset(S->work.dWork.sfcn[i].array, 0, (S->work.dWork.sfcn[i].width)*sizeof(int_T));
-				break;
-			case SS_INT8:     /* int8_T    */
-				memset(S->work.dWork.sfcn[i].array, 0, (S->work.dWork.sfcn[i].width)*sizeof(int8_T));
-				break;
-			case SS_UINT8:    /* uint8_T   */
-				memset(S->work.dWork.sfcn[i].array, 0, (S->work.dWork.sfcn[i].width)*sizeof(uint8_T));
-				break;
-			case SS_INT16:    /* int16_T   */
-				memset(S->work.dWork.sfcn[i].array, 0, (S->work.dWork.sfcn[i].width)*sizeof(int16_T));
-				break;
-			case SS_UINT16:   /* uint16_T  */
-				memset(S->work.dWork.sfcn[i].array, 0, (S->work.dWork.sfcn[i].width)*sizeof(uint16_T));
-				break;
-			case SS_INT32:    /* int32_T   */
-				memset(S->work.dWork.sfcn[i].array, 0, (S->work.dWork.sfcn[i].width)*sizeof(int32_T));
-				break;
-			case SS_UINT32:   /* uint32_T  */
-				memset(S->work.dWork.sfcn[i].array, 0, (S->work.dWork.sfcn[i].width)*sizeof(uint32_T));
-				break;
-			case SS_BOOLEAN:  /* boolean_T */
-				memset(S->work.dWork.sfcn[i].array, 0, (S->work.dWork.sfcn[i].width)*sizeof(boolean_T));
-				break;
-			default:
-				memset(S->work.dWork.sfcn[i].array, 0, (S->work.dWork.sfcn[i].width)*sizeof(real_T));
 				break;
 		}
 	}
