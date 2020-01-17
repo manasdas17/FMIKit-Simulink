@@ -356,7 +356,6 @@ Model *InstantiateModel(const char* instanceName, logMessageCallback logMessage,
 
 fail:
 	if (model != NULL) {
-		const char * iName = instanceName != NULL ? instanceName : "";
 		if (model->S != NULL) {
 			if ((ssGetErrorStatus(model->S) != NULL) || (ssGetStopRequested(model->S) != 0)) {
 				if (ssGetStopRequested(model->S) != 0) {
