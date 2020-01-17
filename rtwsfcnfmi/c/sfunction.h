@@ -66,6 +66,7 @@ SimStruct *CreateSimStructForFMI(const char* instanceName);
 typedef void(*FreeMemoryCallback)(void*);
 
 void FreeSimStruct(SimStruct *S);
+void FreeModel(Model* model);
 void resetSimStructVectors(SimStruct *S);
 void allocateSimStructVectors(Model* m);
 void setSampleStartValues(Model* m);
@@ -74,3 +75,4 @@ void setSampleStartValues(Model* m);
 extern void rt_CreateIntegrationData(SimStruct *S);
 extern void rt_DestroyIntegrationData(SimStruct *S);
 extern void rt_UpdateContinuousStates(SimStruct *S);
+extern void rt_InitInfAndNaN(size_t realSize);
