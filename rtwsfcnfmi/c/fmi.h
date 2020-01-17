@@ -75,19 +75,7 @@ typedef enum {
 #define SFCN_FMI_DATATYPE(valueRef)	(((valueRef) >> 24) & 0xf)
 #define SFCN_FMI_INDEX(valueRef)	((valueRef) & 0xffffff)
 
-
-/* ------------- Macro to free allocated memory -------------- */
-
-#define sfcn_fmi_FREE(ptr, freeFcn)                   \
-	if((ptr) != NULL) {\
-	   free((void *)(ptr));\
-       (ptr) = NULL;\
-    }
-
-/* ----------------------------------------------------------- */
-
-/* -------- Function for double precision comparison --------- */
-
+/* Function for double precision comparison */
 int isEqual(double a, double b)
 {
 	double A, B, largest;
@@ -101,8 +89,5 @@ int isEqual(double a, double b)
 		return 1;
 	return 0;
 }
-
-/* ----------------------------------------------------------- */
-
 
 #endif
