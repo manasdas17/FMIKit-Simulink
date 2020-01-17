@@ -1,4 +1,4 @@
-#pragma once
+#pragma once 
 
 #if defined(_MSC_VER)
 #include "windows.h" /* for HINSTANCE */
@@ -17,9 +17,15 @@ typedef enum {
 	modelTerminated
 } ModelStatus;
 
+/* forward declare Model type */
+typedef struct Model_s Model;
+
+typedef void (*logMessageCallback)(Model *model, int status, const char *message, ...);
+
 /* Model data structure */
-typedef struct {
+struct Model_s {
 	void *userData;
+	logMessageCallback logMessage;
 	const char* instanceName;
 	int loggingOn;
 	SimStruct* S;
@@ -48,10 +54,12 @@ typedef struct {
 #endif
 	real_T* inputDerivatives;
 	real_T derivativeTime;
-} Model;
+};
 
 /* Function to copy per-task sample hits */
 void copyPerTaskSampleHits(SimStruct* S);
+
+Model *InstantiateModel(const char* instanceName, logMessageCallback logMessage, void *userData);
 
 SimStruct *CreateSimStructForFMI(const char* instanceName);
 
