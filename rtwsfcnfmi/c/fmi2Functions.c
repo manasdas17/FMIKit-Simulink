@@ -49,7 +49,6 @@ static void logMessage(Model *model, int status, const char *message, ...) {
 /* logger wrapper for handling of enabled/disabled logging */
 static void logger(fmi2Component c, fmi2String instanceName, fmi2Status status,
 				   fmi2String category, fmi2String message, ...);
-static fmi2String strDup(const fmi2CallbackFunctions *functions, fmi2String s);
 
 /* ------------------ ODE solver functions ------------------- */
 const char *RT_MEMORY_ALLOCATION_ERROR = "Error when allocating SimStruct solver data.";
@@ -1024,7 +1023,6 @@ static void extrapolateInputs(Model* model, fmi2Real t)
 fmi2Status fmi2DoStep(fmi2Component c, fmi2Real currentCommunicationPoint, fmi2Real communicationStepSize, fmi2Boolean noSetFMUStatePriorToCurrentPoint)
 {
 	Model* model = (Model*) c;
-	fmi2Status status = fmi2OK;
 	fmi2Real lastSolverTime, nextSolverTime;
 	fmi2Real endStepTime;
 
