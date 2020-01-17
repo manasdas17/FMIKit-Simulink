@@ -48,8 +48,6 @@ static void logMessage(Model *model, int status, const char *message, ...) {
 	userData->functions.logger(userData->functions.componentEnvironment, model->instanceName, status, "", message);
 }
 
-/* FMI memory allocation with zero initialization */
-void* allocateMemory0(size_t nobj, size_t size);
 /* logger wrapper for handling of enabled/disabled logging */
 static void logger(fmi2Component c, fmi2String instanceName, fmi2Status status,
 				   fmi2String category, fmi2String message, ...);
@@ -144,7 +142,7 @@ void fmi2FreeInstance(fmi2Component c)
 			if (SFCN_FMI_NBR_PARAMS > 0) {
 				/* Free dynamically allocated parameters for this instance */
 				paramP = sfcn_fmi_getParametersP_(model->S);
-				sfcn_fmi_FREE(paramP, ((UserData*)model->userData)->functions.freeMemory);
+				free(paramP);
 			}
 		}
 		/* Call mdlTerminate here, since that clears S-function Userdata */
@@ -164,25 +162,25 @@ void fmi2FreeInstance(fmi2Component c)
 #if defined(_MSC_VER)
 		SetDllDirectory(0);
 #endif
-		sfcn_fmi_FREE(_SFCN_FMI_MATLAB_BIN, userData->functions.freeMemory);
+		free((void *)_SFCN_FMI_MATLAB_BIN);
 	}
 
 	FreeMemoryCallback freeMemory = ((UserData*)model->userData)->functions.freeMemory;
 
 	FreeSimStruct(model->S, freeMemory);
-	sfcn_fmi_FREE(model->instanceName, freeMemory);
-	sfcn_fmi_FREE(model->dX, freeMemory);
-	sfcn_fmi_FREE(model->oldZC, freeMemory);
-	sfcn_fmi_FREE(model->numSampleHits, freeMemory);
-	sfcn_fmi_FREE(model->inputs, freeMemory);
-	sfcn_fmi_FREE(model->outputs, freeMemory);
-	sfcn_fmi_FREE(model->parameters, freeMemory);
-	sfcn_fmi_FREE(model->blockoutputs, freeMemory);
-	sfcn_fmi_FREE(model->dwork, freeMemory);
-	sfcn_fmi_FREE(model->mexHandles, freeMemory);
-	sfcn_fmi_FREE(model->inputDerivatives, freeMemory);
-	sfcn_fmi_FREE(userData, freeMemory);
-	sfcn_fmi_FREE(model, freeMemory);
+	free((void *)model->instanceName);
+	free(model->dX);
+	free(model->oldZC);
+	free(model->numSampleHits);
+	free(model->inputs);
+	free(model->outputs);
+	free(model->parameters);
+	free(model->blockoutputs);
+	free(model->dwork);
+	free(model->mexHandles);
+	free(model->inputDerivatives);
+	free(userData);
+	free(model);
 
 	/* Reset global memory allocation function */
 	allocateMemory = NULL;
@@ -314,7 +312,7 @@ fmi2Status fmi2Reset(fmi2Component c)
 	if (ssGetUserData(model->S) != NULL ) {
 		if (SFCN_FMI_NBR_PARAMS > 0) {
 			paramP = sfcn_fmi_getParametersP_(model->S);
-			sfcn_fmi_FREE(paramP, ((UserData*)model->userData)->functions.freeMemory);
+			free(paramP);
 		}
 	}
 	sfcnTerminate(model->S);
@@ -1206,20 +1204,6 @@ fmi2Status fmi2GetStringStatus(fmi2Component c, const fmi2StatusKind s, fmi2Stri
 
 /* ----------------- Local function definitions ----------------- */
 
-/* Most FMI environments pass in calloc, but zero initialization was
-   not guaranteed in early versions of FMI */
-void* allocateMemory0(size_t nobj, size_t size) {
-
-	void* obj;
-	if (allocateMemory == NULL) {
-		return NULL;
-	} else {
-		obj = allocateMemory(nobj, size);
-		memset(obj, 0, nobj*size);
-		return obj;
-	}
-}
-
 static void logger(fmi2Component c, fmi2String instanceName, fmi2Status status,
 				   fmi2String category, fmi2String message, ...)
 {
@@ -1246,30 +1230,6 @@ static void logger(fmi2Component c, fmi2String instanceName, fmi2Status status,
 	va_end(ap);
 	fmi2ComponentEnvironment componentEnvironment = ((UserData *)model->userData)->functions.componentEnvironment;
 	((UserData *)model->userData)->functions.logger(componentEnvironment, instanceName, status, category, buf);
-}
-
-static fmi2String strDup(const fmi2CallbackFunctions *functions, fmi2String s)
-{
-	const fmi2String nullString = "<NULL>";
-	const int maxLen = 1024;
-	fmi2String pos = s;
-	int len;
-	char* newS;
-
-	if (s == NULL) {
-		s = nullString;
-	}
-	len = (int) strlen(s);
-	if (len > maxLen) {
-		len = maxLen;
-	}
-
-	newS = (char*) allocateMemory0(len + 1, sizeof(char));
-	if (newS == NULL) {
-		return NULL;
-	}
-	strncpy(newS, s, len);
-	return newS;
 }
 
 /* FMU mapping of ssPrintf for child C source S-functions (through rtPrintfNoOp) */

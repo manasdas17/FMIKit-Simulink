@@ -424,13 +424,6 @@ SimStruct *CreateSimStructForFMI(const char* instanceName)
 	return(S);
 }
 
-/* Macro to free allocated memory */
-#define sfcn_fmi_FREE(ptr, freeFcn)                   \
-	if((ptr) != NULL) {\
-	   free((void *)(ptr));\
-       (ptr) = NULL;\
-    }
-
 void FreeSimStruct(SimStruct *S, FreeMemoryCallback freeMemory) {
 	int_T port, i;
 	void** inputPtrs;
@@ -442,54 +435,54 @@ void FreeSimStruct(SimStruct *S, FreeMemoryCallback freeMemory) {
 			inputPtrs = (void**)S->portInfo.inputs[port].signal.ptrs;
 			if (inputPtrs != NULL) {
 				inputSignals = inputPtrs[0];
-				sfcn_fmi_FREE(inputSignals, freeMemory);
+				free(inputSignals);
 				freeMemory(inputPtrs);
 				inputPtrs = NULL;
 			}
 		}
-		sfcn_fmi_FREE(S->portInfo.inputs, freeMemory);
+		free(S->portInfo.inputs);
 
 		for (port = 0; port<S->sizes.out.numOutputPorts; port++) {
-			sfcn_fmi_FREE(S->portInfo.outputs[port].signalVect, freeMemory);
+			free(S->portInfo.outputs[port].signalVect);
 		}
-		sfcn_fmi_FREE(S->portInfo.outputs, freeMemory);
+		free(S->portInfo.outputs);
 
-		sfcn_fmi_FREE(S->states.contStates, freeMemory);
+		free(S->states.contStates);
 		/* S->states.dX changed and deallocated by rt_DestroyIntegrationData */
-		sfcn_fmi_FREE(S->states.contStateDisabled, freeMemory);
-		sfcn_fmi_FREE(S->states.discStates, freeMemory);
-		sfcn_fmi_FREE(S->stInfo.sampleTimes, freeMemory);
-		sfcn_fmi_FREE(S->stInfo.offsetTimes, freeMemory);
-		sfcn_fmi_FREE(S->stInfo.sampleTimeTaskIDs, freeMemory);
-		sfcn_fmi_FREE(S->work.modeVector, freeMemory);
-		sfcn_fmi_FREE(S->work.iWork, freeMemory);
-		sfcn_fmi_FREE(S->work.pWork, freeMemory);
-		sfcn_fmi_FREE(S->work.rWork, freeMemory);
+		free(S->states.contStateDisabled);
+		free(S->states.discStates);
+		free(S->stInfo.sampleTimes);
+		free(S->stInfo.offsetTimes);
+		free(S->stInfo.sampleTimeTaskIDs);
+		free(S->work.modeVector);
+		free(S->work.iWork);
+		free(S->work.pWork);
+		free(S->work.rWork);
 		for (i = 0; i<S->sizes.numDWork; i++) {
-			sfcn_fmi_FREE(S->work.dWork.sfcn[i].array, freeMemory);
+			free(S->work.dWork.sfcn[i].array);
 		}
-		sfcn_fmi_FREE(S->work.dWork.sfcn, freeMemory);
+		free(S->work.dWork.sfcn);
 		sfcn_fmi_mxGlobalTunable_(S, 0, 0);
-		sfcn_fmi_FREE(S->sfcnParams.dlgParams, freeMemory);
+		free(S->sfcnParams.dlgParams);
 
 #if defined(MATLAB_R2011a_) || defined(MATLAB_R2015a_) || defined(MATLAB_R2017b_)
-		sfcn_fmi_FREE(S->states.statesInfo2->absTol, freeMemory);
-		sfcn_fmi_FREE(S->states.statesInfo2->absTolControl, freeMemory);
+		free(S->states.statesInfo2->absTol);
+		free(S->states.statesInfo2->absTolControl);
 #if defined(MATLAB_R2015a_) || defined(MATLAB_R2017b_)
-		sfcn_fmi_FREE(S->states.statesInfo2->periodicStatesInfo, freeMemory);
+		free(S->states.statesInfo2->periodicStatesInfo);
 #endif
-		sfcn_fmi_FREE(S->states.statesInfo2, freeMemory);
+		free(S->states.statesInfo2);
 #endif
 
 		if (S->mdlInfo != NULL) {
 			if (S->mdlInfo->dataTypeAccess != NULL) {
-				sfcn_fmi_FREE(S->mdlInfo->dataTypeAccess->dataTypeTable, freeMemory);
+				free(S->mdlInfo->dataTypeAccess->dataTypeTable);
 				free(S->mdlInfo->dataTypeAccess);
 				S->mdlInfo->dataTypeAccess = NULL;
 			}
-			sfcn_fmi_FREE(S->mdlInfo->solverInfo->zcSignalVector, freeMemory);
-			sfcn_fmi_FREE(S->mdlInfo->sampleHits, freeMemory);
-			sfcn_fmi_FREE(S->mdlInfo->t, freeMemory);
+			free(S->mdlInfo->solverInfo->zcSignalVector);
+			free(S->mdlInfo->sampleHits);
+			free(S->mdlInfo->t);
 			rt_DestroyIntegrationData(S); /* Clear solver data */
 			free(S->mdlInfo);
 			S->mdlInfo = NULL;
