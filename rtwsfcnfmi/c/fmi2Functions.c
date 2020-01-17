@@ -162,9 +162,7 @@ void fmi2FreeInstance(fmi2Component c)
 		free((void *)_SFCN_FMI_MATLAB_BIN);
 	}
 
-	FreeMemoryCallback freeMemory = ((UserData*)model->userData)->functions.freeMemory;
-
-	FreeSimStruct(model->S, freeMemory);
+	FreeSimStruct(model->S);
 	free((void *)model->instanceName);
 	free(model->dX);
 	free(model->oldZC);

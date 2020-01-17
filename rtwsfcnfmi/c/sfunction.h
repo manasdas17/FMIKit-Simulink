@@ -65,7 +65,7 @@ SimStruct *CreateSimStructForFMI(const char* instanceName);
 
 typedef void(*FreeMemoryCallback)(void*);
 
-void FreeSimStruct(SimStruct *S, FreeMemoryCallback freeMemory);
+void FreeSimStruct(SimStruct *S);
 void resetSimStructVectors(SimStruct *S);
 void allocateSimStructVectors(Model* m);
 void setSampleStartValues(Model* m);

@@ -426,7 +426,7 @@ SimStruct *CreateSimStructForFMI(const char* instanceName)
 	return(S);
 }
 
-void FreeSimStruct(SimStruct *S, FreeMemoryCallback freeMemory) {
+void FreeSimStruct(SimStruct *S) {
 	int_T port, i;
 	void** inputPtrs;
 	void* inputSignals;
@@ -438,7 +438,7 @@ void FreeSimStruct(SimStruct *S, FreeMemoryCallback freeMemory) {
 			if (inputPtrs != NULL) {
 				inputSignals = inputPtrs[0];
 				free(inputSignals);
-				freeMemory(inputPtrs);
+				free(inputPtrs);
 				inputPtrs = NULL;
 			}
 		}
