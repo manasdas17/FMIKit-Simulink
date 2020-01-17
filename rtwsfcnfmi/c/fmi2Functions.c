@@ -54,11 +54,8 @@ static fmi2String strDup(const fmi2CallbackFunctions *functions, fmi2String s);
 /* ------------------ ODE solver functions ------------------- */
 const char *RT_MEMORY_ALLOCATION_ERROR = "Error when allocating SimStruct solver data.";
 
-extern void rt_InitInfAndNaN(size_t realSize);
-
 /* Globals used for child S-functions */
 extern Model* currentModel;
-const char* _SFCN_FMI_MATLAB_BIN = NULL;
 
 /* -----------------------------------------------------------
    ----------------- FMI function definitions ----------------
@@ -123,59 +120,7 @@ fmi2Component fmi2Instantiate(fmi2String	instanceName,
 void fmi2FreeInstance(fmi2Component c)
 {
 	Model* model = (Model*) c;
-	void* paramP;
-	int i;
-
-	if (model == NULL) {
-		return;
-	}
-
-	assert(model->instanceName != NULL);
-
-	logger(model, model->instanceName, fmi2OK, "", "Freeing instance\n");
-
-	if (model->S != NULL) {
-		if (ssGetUserData(model->S) != NULL ) {
-			if (SFCN_FMI_NBR_PARAMS > 0) {
-				/* Free dynamically allocated parameters for this instance */
-				paramP = sfcn_fmi_getParametersP_(model->S);
-				free(paramP);
-			}
-		}
-		/* Call mdlTerminate here, since that clears S-function Userdata */
-		sfcnTerminate(model->S);
-	}
-
-	UserData *userData = (UserData*)model->userData;
-
-	if (SFCN_FMI_LOAD_MEX) {
-		for (i=0; i<SFCN_FMI_NBR_MEX; i++) {
-#if defined(_MSC_VER)
-			FreeLibrary(model->mexHandles[i]);
-#else
-			dlclose(model->mexHandles[i]);
-#endif
-		}
-#if defined(_MSC_VER)
-		SetDllDirectory(0);
-#endif
-		free((void *)_SFCN_FMI_MATLAB_BIN);
-	}
-
-	FreeSimStruct(model->S);
-	free((void *)model->instanceName);
-	free(model->dX);
-	free(model->oldZC);
-	free(model->numSampleHits);
-	free(model->inputs);
-	free(model->outputs);
-	free(model->parameters);
-	free(model->blockoutputs);
-	free(model->dwork);
-	free(model->mexHandles);
-	free(model->inputDerivatives);
-	free(userData);
-	free(model);
+    FreeModel(model);
 }
 
 fmi2Status fmi2SetTime(fmi2Component c, fmi2Real time);

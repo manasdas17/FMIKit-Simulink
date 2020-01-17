@@ -4,6 +4,8 @@
 
 Model* currentModel = NULL;
 
+const char* _SFCN_FMI_MATLAB_BIN = NULL;
+
 static int LoadMEXAndDependencies(Model *model);
 
 void copyPerTaskSampleHits(SimStruct* S) {
@@ -363,12 +365,12 @@ fail:
 				if (ssGetErrorStatus(model->S) != NULL) {
 					logMessage(model, 3,"Error reported by S-function: %s", ssGetErrorStatus(model->S));
 				}
-				fmi2FreeInstance(model);
+				FreeModel(model);
 				return NULL;
 			}
 		}
 		logMessage(model, 4, "Instantiation failed due to problems with memory allocation or dynamic loading.");
-		fmi2FreeInstance(model);
+		FreeModel(model);
 	}
 	return NULL;
 }
@@ -493,6 +495,62 @@ void FreeSimStruct(SimStruct *S) {
 		free(S);
 		S = NULL;
 	}
+}
+
+void FreeModel(Model* model) {
+    
+    void* paramP;
+    int i;
+
+    if (model == NULL) {
+        return;
+    }
+
+    assert(model->instanceName != NULL);
+
+//    logger(model, model->instanceName, fmi2OK, "", "Freeing instance\n");
+
+    if (model->S != NULL) {
+        if (ssGetUserData(model->S) != NULL ) {
+            if (SFCN_FMI_NBR_PARAMS > 0) {
+                /* Free dynamically allocated parameters for this instance */
+                paramP = sfcn_fmi_getParametersP_(model->S);
+                free(paramP);
+            }
+        }
+        /* Call mdlTerminate here, since that clears S-function Userdata */
+        sfcnTerminate(model->S);
+    }
+
+//    UserData *userData = (UserData*)model->userData;
+
+    if (SFCN_FMI_LOAD_MEX) {
+        for (i=0; i<SFCN_FMI_NBR_MEX; i++) {
+#if defined(_MSC_VER)
+            FreeLibrary(model->mexHandles[i]);
+#else
+            dlclose(model->mexHandles[i]);
+#endif
+        }
+#if defined(_MSC_VER)
+        SetDllDirectory(0);
+#endif
+        free((void *)_SFCN_FMI_MATLAB_BIN);
+    }
+
+    FreeSimStruct(model->S);
+    free((void *)model->instanceName);
+    free(model->dX);
+    free(model->oldZC);
+    free(model->numSampleHits);
+    free(model->inputs);
+    free(model->outputs);
+    free(model->parameters);
+    free(model->blockoutputs);
+    free(model->dwork);
+    free(model->mexHandles);
+    free(model->inputDerivatives);
+    free(model);
 }
 
 void resetSimStructVectors(SimStruct *S) {
