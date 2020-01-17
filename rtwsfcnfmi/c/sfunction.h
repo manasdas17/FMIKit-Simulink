@@ -68,6 +68,7 @@ typedef void(*FreeMemoryCallback)(void*);
 void FreeSimStruct(SimStruct *S);
 void FreeModel(Model* model);
 void resetSimStructVectors(SimStruct *S);
+void ReseModel(Model* model);
 void allocateSimStructVectors(Model* m);
 void setSampleStartValues(Model* m);
 

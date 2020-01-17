@@ -255,41 +255,13 @@ fmi2Status fmi2Terminate(fmi2Component c)
 fmi2Status fmi2Reset(fmi2Component c)
 {
 	Model* model = (Model*) c;
-	fmi2Status status = fmi2OK;
-	void* paramP;
 
-	resetSimStructVectors(model->S);
-	rt_DestroyIntegrationData(model->S);
-	rt_CreateIntegrationData(model->S);
-	setSampleStartValues(model);
-	if (ssGetUserData(model->S) != NULL ) {
-		if (SFCN_FMI_NBR_PARAMS > 0) {
-			paramP = sfcn_fmi_getParametersP_(model->S);
-			free(paramP);
-		}
-	}
-	sfcnTerminate(model->S);
-	if (ssGetmdlStart(model->S) != NULL) {
-		sfcnStart(model->S);
-	}
-	if (ssGetmdlInitializeConditions(model->S) != NULL) {
-		sfcnInitializeConditions(model->S);
-	}
-	sfcn_fmi_assignParameters_(model->S, model->parameters);
-	memset(model->oldZC,			0, (SFCN_FMI_ZC_LENGTH+1)*sizeof(real_T));
-	memset(model->numSampleHits,	0, (model->S->sizes.numSampleTimes+1)*sizeof(int_T));
-	model->fixed_in_minor_step_offset_tid = 0;
-	model->nextHit_tid0 = 0.0;
-	model->lastGetTime = -1.0;
-	model->shouldRecompute = fmi2False;
-	model->time = 0.0;
-	model->nbrSolverSteps = 0.0;
-	model->status = modelInstantiated;
+    ResetModel(model);
 
 	UserData *userData = (UserData *)model->userData;
 	memset(&(userData->eventInfo), 0, sizeof(fmi2EventInfo));
 
-	return status;
+	return fmi2OK;
 }
 
 /***************** Get / Set functions/macros *****************/
