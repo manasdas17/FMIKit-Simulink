@@ -19,27 +19,6 @@
 */
 #include "sfcn_fmi_rel_conf.h"
 
-
-#include <stdarg.h>
-#include <stdio.h>
-#include <string.h>
-#include <assert.h>
-#include <float.h>
-#include <math.h>
-
-#if defined(_MSC_VER)
-#include "windows.h"
-
-#else
-
-#include <sys/stat.h>
-/* might need access to non-standard function dladdr */
-#define __USE_GNU
-#include <dlfcn.h>
-#undef __USE_GNU
-
-#endif
-
 #include <simstruc.h>
 
 #undef SFCN_FMI_VERBOSITY /* Define to add debug logging */
@@ -74,20 +53,5 @@ typedef enum {
 #define SFCN_FMI_CATEGORY(valueRef) ((valueRef) >> 28)
 #define SFCN_FMI_DATATYPE(valueRef)	(((valueRef) >> 24) & 0xf)
 #define SFCN_FMI_INDEX(valueRef)	((valueRef) & 0xffffff)
-
-/* Function for double precision comparison */
-int isEqual(double a, double b)
-{
-	double A, B, largest;
-	double diff = fabs(a-b);
-
-	A = fabs(a);
-	B = fabs(b);
-	largest = (B > A) ? B : A;
-
-	if (diff <= (1.0+largest)*SFCN_FMI_EPS)
-		return 1;
-	return 0;
-}
 
 #endif

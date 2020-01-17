@@ -11,6 +11,8 @@
 -----------------------------------------------------------
 */
 
+#include <math.h>
+
 #include "sfcn_fmi.h"
 #include "fmi.h"
 #include "fmi2Functions.h"	/* Official FMI 2.0 header */
@@ -44,6 +46,21 @@ typedef struct {
 static void logMessage(Model *model, int status, const char *message, ...) {
 	UserData *userData = (UserData *)model->userData;
 	userData->functions.logger(userData->functions.componentEnvironment, model->instanceName, status, "", message);
+}
+
+/* Function for double precision comparison */
+static int isEqual(double a, double b)
+{
+    double A, B, largest;
+    double diff = fabs(a-b);
+
+    A = fabs(a);
+    B = fabs(b);
+    largest = (B > A) ? B : A;
+
+    if (diff <= (1.0 + largest) * SFCN_FMI_EPS)
+        return 1;
+    return 0;
 }
 
 /* logger wrapper for handling of enabled/disabled logging */
