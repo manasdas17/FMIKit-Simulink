@@ -1,3 +1,13 @@
+#if defined(_MSC_VER)
+#include "windows.h"
+#else
+#include <sys/stat.h>
+/* might need access to non-standard function dladdr */
+#define __USE_GNU
+#include <dlfcn.h>
+#undef __USE_GNU
+#endif
+
 #include "sfcn_fmi_rel_conf.h"
 #include "sfcn_fmi.h"
 #include "sfunction.h"
