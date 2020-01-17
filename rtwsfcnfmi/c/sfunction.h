@@ -19,6 +19,7 @@ typedef enum {
 
 /* Model data structure */
 typedef struct {
+	void *userData;
 	const char* instanceName;
 	int loggingOn;
 	SimStruct* S;
@@ -32,7 +33,6 @@ typedef struct {
 	void** parameters;
 	void** blockoutputs;
 	void** dwork;
-	void* functions;  // TODO: move to userData
 	real_T lastGetTime;
 	int shouldRecompute;
 	int isCoSim;
@@ -40,7 +40,6 @@ typedef struct {
 	int hasEnteredContMode;
 	real_T time;
 	real_T nbrSolverSteps;
-	void* eventInfo;  // TODO: move to userData
 	ModelStatus status;
 #if defined(_MSC_VER)
 	HINSTANCE* mexHandles;
