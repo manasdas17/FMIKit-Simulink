@@ -618,6 +618,39 @@ void resetSimStructVectors(SimStruct *S) {
 	}
 }
 
+void ResetModel(Model* model) {
+    
+    void* paramP;
+
+    resetSimStructVectors(model->S);
+    rt_DestroyIntegrationData(model->S);
+    rt_CreateIntegrationData(model->S);
+    setSampleStartValues(model);
+    if (ssGetUserData(model->S) != NULL ) {
+        if (SFCN_FMI_NBR_PARAMS > 0) {
+            paramP = sfcn_fmi_getParametersP_(model->S);
+            free(paramP);
+        }
+    }
+    sfcnTerminate(model->S);
+    if (ssGetmdlStart(model->S) != NULL) {
+        sfcnStart(model->S);
+    }
+    if (ssGetmdlInitializeConditions(model->S) != NULL) {
+        sfcnInitializeConditions(model->S);
+    }
+    sfcn_fmi_assignParameters_(model->S, model->parameters);
+    memset(model->oldZC,            0, (SFCN_FMI_ZC_LENGTH+1)*sizeof(real_T));
+    memset(model->numSampleHits,    0, (model->S->sizes.numSampleTimes+1)*sizeof(int_T));
+    model->fixed_in_minor_step_offset_tid = 0;
+    model->nextHit_tid0 = 0.0;
+    model->lastGetTime = -1.0;
+    model->shouldRecompute = 0;
+    model->time = 0.0;
+    model->nbrSolverSteps = 0.0;
+    model->status = modelInstantiated;
+}
+
 void allocateSimStructVectors(Model* m) {
 	int_T i;
 	SimStruct* S = m->S;
