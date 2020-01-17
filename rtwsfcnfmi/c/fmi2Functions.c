@@ -41,8 +41,6 @@ typedef struct {
 
 /* ------------------ Local help functions ------------------- */
 
-fmi2CallbackAllocateMemory allocateMemory = NULL;
-
 static void logMessage(Model *model, int status, const char *message, ...) {
 	UserData *userData = (UserData *)model->userData;
 	userData->functions.logger(userData->functions.componentEnvironment, model->instanceName, status, "", message);
@@ -180,9 +178,6 @@ void fmi2FreeInstance(fmi2Component c)
 	free(model->inputDerivatives);
 	free(userData);
 	free(model);
-
-	/* Reset global memory allocation function */
-	allocateMemory = NULL;
 }
 
 fmi2Status fmi2SetTime(fmi2Component c, fmi2Real time);
