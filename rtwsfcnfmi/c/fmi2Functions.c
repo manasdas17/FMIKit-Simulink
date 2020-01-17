@@ -16,6 +16,11 @@
 #include "fmi2Functions.h"	/* Official FMI 2.0 header */
 #include "sfunction.h"
 
+typedef struct {
+	fmi2CallbackFunctions functions;
+	fmi2EventInfo eventInfo;
+} UserData;
+
 
 /* -------------- Macro to check if initialized -------------- */
 
@@ -60,18 +65,15 @@ const char* _SFCN_FMI_MATLAB_BIN = NULL;
 
 /***************** Common functions *****************/
 
-const char* fmi2GetTypesPlatform()
-{
+const char* fmi2GetTypesPlatform() {
 	return fmi2TypesPlatform;
 }
 
-const char* fmi2GetVersion()
-{
+const char* fmi2GetVersion() {
 	return fmi2Version;
 }
 
-fmi2Status fmi2SetDebugLogging(fmi2Component c, fmi2Boolean loggingOn, size_t nCategories, const fmi2String categories[])
-{
+fmi2Status fmi2SetDebugLogging(fmi2Component c, fmi2Boolean loggingOn, size_t nCategories, const fmi2String categories[]) {
 	Model* model = (Model*) c;
 	model->loggingOn = loggingOn;
 	/* Categories currently not supported */
@@ -101,9 +103,13 @@ fmi2Component fmi2Instantiate(fmi2String	instanceName,
 		goto fail;
 	}
 
+	UserData *userData = (UserData *)allocateMemory0(1, sizeof(Model));
+
+	model->userData = userData;
+
 	/* The following arguments are ignored: fmuResourceLocation, visible */
 
-	model->functions = (void*)functions;
+	userData->functions = *functions;
 
 	/* verify GUID */
 	if (strcmp(GUID, MODEL_GUID) != 0) {
@@ -130,8 +136,6 @@ fmi2Component fmi2Instantiate(fmi2String	instanceName,
 			logger(model, model->instanceName, fmi2Warning, "", "fmi2Instantiate: Callback function stepFinished != NULL but asynchronous fmi2DoStep is not supported\n");
 		}
 	}
-
-	model->eventInfo = allocateMemory0(1, sizeof(fmi2EventInfo));
 	
 	if (SFCN_FMI_LOAD_MEX) {
 #if defined(_MSC_VER)
@@ -253,12 +257,14 @@ void fmi2FreeInstance(fmi2Component c)
 			if (SFCN_FMI_NBR_PARAMS > 0) {
 				/* Free dynamically allocated parameters for this instance */
 				paramP = sfcn_fmi_getParametersP_(model->S);
-				sfcn_fmi_FREE(paramP, ((fmi2CallbackFunctions*)model->functions)->freeMemory);
+				sfcn_fmi_FREE(paramP, ((UserData*)model->userData)->functions.freeMemory);
 			}
 		}
 		/* Call mdlTerminate here, since that clears S-function Userdata */
 		sfcnTerminate(model->S);
 	}
+
+	UserData *userData = (UserData*)model->userData;
 
 	if (SFCN_FMI_LOAD_MEX) {
 		for (i=0; i<SFCN_FMI_NBR_MEX; i++) {
@@ -271,10 +277,10 @@ void fmi2FreeInstance(fmi2Component c)
 #if defined(_MSC_VER)
 		SetDllDirectory(0);
 #endif
-		sfcn_fmi_FREE(_SFCN_FMI_MATLAB_BIN, ((fmi2CallbackFunctions*)model->functions)->freeMemory);
+		sfcn_fmi_FREE(_SFCN_FMI_MATLAB_BIN, userData->functions.freeMemory);
 	}
 
-	FreeMemoryCallback freeMemory = ((fmi2CallbackFunctions*)model->functions)->freeMemory;
+	FreeMemoryCallback freeMemory = ((UserData*)model->userData)->functions.freeMemory;
 
 	FreeSimStruct(model->S, freeMemory);
 	sfcn_fmi_FREE(model->instanceName, freeMemory);
@@ -288,7 +294,7 @@ void fmi2FreeInstance(fmi2Component c)
 	sfcn_fmi_FREE(model->dwork, freeMemory);
 	sfcn_fmi_FREE(model->mexHandles, freeMemory);
 	sfcn_fmi_FREE(model->inputDerivatives, freeMemory);
-	sfcn_fmi_FREE(model->eventInfo, freeMemory);
+	sfcn_fmi_FREE(userData, freeMemory);
 	sfcn_fmi_FREE(model, freeMemory);
 
 	/* Reset global memory allocation function */
@@ -380,7 +386,7 @@ fmi2Status fmi2ExitInitializationMode(fmi2Component c)
 
 	if (model->isCoSim) {
 		/* Evaluate model at t=0 */
-		status = fmi2NewDiscreteStates(c, (fmi2EventInfo*)model->eventInfo);
+		status = fmi2NewDiscreteStates(c, &(((UserData *)model->userData)->eventInfo));
 		if (status != fmi2OK) {
 			model->status = modelInstantiated;
 			return status;
@@ -421,7 +427,7 @@ fmi2Status fmi2Reset(fmi2Component c)
 	if (ssGetUserData(model->S) != NULL ) {
 		if (SFCN_FMI_NBR_PARAMS > 0) {
 			paramP = sfcn_fmi_getParametersP_(model->S);
-			sfcn_fmi_FREE(paramP, ((fmi2CallbackFunctions*)model->functions)->freeMemory);
+			sfcn_fmi_FREE(paramP, ((UserData*)model->userData)->functions.freeMemory);
 		}
 	}
 	sfcnTerminate(model->S);
@@ -441,7 +447,9 @@ fmi2Status fmi2Reset(fmi2Component c)
 	model->time = 0.0;
 	model->nbrSolverSteps = 0.0;
 	model->status = modelInstantiated;
-	memset(model->eventInfo, 0, sizeof(fmi2EventInfo));
+
+	UserData *userData = (UserData *)model->userData;
+	memset(&(userData->eventInfo), 0, sizeof(fmi2EventInfo));
 
 	return status;
 }
@@ -1240,7 +1248,8 @@ fmi2Status fmi2DoStep(fmi2Component c, fmi2Real currentCommunicationPoint, fmi2R
 		/* Extrapolate inputs */
 		extrapolateInputs(model, nextSolverTime);
 		/* Set sample hits and call mdlOutputs / mdlUpdate (always a discrete sample time = Fixed-step size) */
-		fmi2NewDiscreteStates(c, model->eventInfo);
+		UserData *userData = (UserData *)model->userData;
+		fmi2NewDiscreteStates(c, &(userData->eventInfo));
 		/* Update solver times */
 		lastSolverTime = nextSolverTime;
 		model->nbrSolverSteps++;
@@ -1348,7 +1357,8 @@ static void logger(fmi2Component c, fmi2String instanceName, fmi2Status status,
 	vsnprintf(buf, capacity, message, ap);
 #endif
 	va_end(ap);
-	((fmi2CallbackFunctions*)model->functions)->logger(((fmi2CallbackFunctions*)model->functions)->componentEnvironment, instanceName, status, category, buf);
+	fmi2ComponentEnvironment componentEnvironment = ((UserData *)model->userData)->functions.componentEnvironment;
+	((UserData *)model->userData)->functions.logger(componentEnvironment, instanceName, status, category, buf);
 }
 
 static fmi2String strDup(const fmi2CallbackFunctions *functions, fmi2String s)
@@ -1442,7 +1452,8 @@ int LoadMEXAndDependencies(Model *model)
 	/* Setting MATLAB bin directory and loading MATLAB dependencies.
 		Not done on Linux, there the MATLAB bin needs to be set with LD_LIBRARY_PATH */
 	if ( (getenv("SFCN_FMI_MATLAB_BIN") != NULL) && (_SFCN_FMI_MATLAB_BIN == NULL) ) {
-		_SFCN_FMI_MATLAB_BIN = strDup(model->functions, getenv("SFCN_FMI_MATLAB_BIN"));
+		UserData *userData = (UserData *)model->userData;
+		_SFCN_FMI_MATLAB_BIN = strDup(&(userData->functions), getenv("SFCN_FMI_MATLAB_BIN"));
 	}
 	if (_SFCN_FMI_MATLAB_BIN == NULL) {
 		SetDllDirectory(SFCN_FMI_MATLAB_BIN);
