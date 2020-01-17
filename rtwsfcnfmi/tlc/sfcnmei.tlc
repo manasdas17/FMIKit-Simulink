@@ -87,9 +87,19 @@ static const char* SFCN_FMI_MEX_NAMES[%<numNonInlinedCMEXSFcns>] = {
 
 static const char* SFCN_FMI_MEX_NAMES[1] = {""};
 
-void sfcn_fmi_mxGlobalTunable_(SimStruct* S, int_T create, int_T update);
-
-void* sfcn_fmi_allocateBusObject(int_T isInput, int_T portid, int_T width);
+extern void  sfcn_fmi_mxGlobalTunable_(SimStruct* S, int_T create, int_T update);
+extern void* sfcn_fmi_allocateBusObject(int_T isInput, int_T portid, int_T width);
+extern void  sfcn_fmi_registerMdlCallbacks_(SimStruct* S);
+extern void  sfcn_fmi_registerRTModelCallbacks_(SimStruct*S);
+extern void  sfcn_fmi_assignInputs_(SimStruct* S, void** inputs);
+extern void  sfcn_fmi_assignOutputs_(SimStruct* S, void** outputs);
+extern void  sfcn_fmi_assignParameters_(SimStruct* S, void** parameters);
+extern void  sfcn_fmi_assignBlockOutputs_(SimStruct* S, void** blockoutputs);
+extern void  sfcn_fmi_assignDWork_(SimStruct* S, void** dwork);
+extern void* sfcn_fmi_getParametersP_(SimStruct* S);
+extern void  sfcn_fmi_copyToSFcnParams_(SimStruct* S);
+extern void* sfcn_fmi_allocateBusObject(int_T isInput, int_T portid, int_T width);
+extern void  sfcn_fmi_mxGlobalTunable_(SimStruct* S, int_T create, int_T update);
 
 %endif
 
@@ -109,8 +119,6 @@ void* sfcn_fmi_allocateBusObject(int_T isInput, int_T portid, int_T width);
 
 #include <stddef.h>
 
- /* FMI memory allocation with zero initialization */
-extern void* allocateMemory0(size_t nobj, size_t size);
 
 %if FMIVersion == "2.0"
 /* Include header for FMI 2.0 */
@@ -253,7 +261,7 @@ void sfcn_fmi_assignOutputs_(SimStruct* S, void** outputs)
 void sfcn_fmi_assignParameters_(SimStruct* S, void** parameters)
 {
 %if nbrParamsScalar > 0
-  %<parType>* p = allocateMemory0(1, sizeof(%<parType>));
+  %<parType>* p = calloc(1, sizeof(%<parType>));
   (*p) = %<defParam>;
   %assign paramFunctionCount = CAST("Number", FEVAL("floor", nbrParamsScalar/500))+1
   %foreach funcid = paramFunctionCount
@@ -302,7 +310,7 @@ void sfcn_fmi_mxGlobalTunable_(SimStruct* S, int_T create, int_T update)
   mxArray *param;
   int_T i;
   if (create && !update) {
-    S->sfcnParams.dlgParams = (mxArray**) allocateMemory0(%<nbrGlobalTunable>, sizeof(mxArray*));
+    S->sfcnParams.dlgParams = (mxArray**) calloc(%<nbrGlobalTunable>, sizeof(mxArray*));
   }
   %with ::CompiledModel.ModelParameters
     %foreach gparamid = NumParameters

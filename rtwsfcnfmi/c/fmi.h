@@ -47,18 +47,6 @@
 #define SFCN_FMI_MAX_TIME	1e100
 #define SFCN_FMI_EPS		2e-13	/* Not supported with discrete sample times smaller than this */
 
-extern void  sfcn_fmi_registerMdlCallbacks_(SimStruct* S);
-extern void  sfcn_fmi_registerRTModelCallbacks_(SimStruct*S);
-extern void  sfcn_fmi_assignInputs_(SimStruct* S, void** inputs);
-extern void  sfcn_fmi_assignOutputs_(SimStruct* S, void** outputs);
-extern void  sfcn_fmi_assignParameters_(SimStruct* S, void** parameters);
-extern void  sfcn_fmi_assignBlockOutputs_(SimStruct* S, void** blockoutputs);
-extern void  sfcn_fmi_assignDWork_(SimStruct* S, void** dwork);
-extern void* sfcn_fmi_getParametersP_(SimStruct* S);
-extern void  sfcn_fmi_copyToSFcnParams_(SimStruct* S);
-extern void* sfcn_fmi_allocateBusObject(int_T isInput, int_T portid, int_T width);
-extern void  sfcn_fmi_mxGlobalTunable_(SimStruct* S, int_T create, int_T update);
-
 #if defined(_MSC_VER)
 #if _MSC_VER > 1350
 /* avoid warnings from Visual Studio */
@@ -92,7 +80,7 @@ typedef enum {
 
 #define sfcn_fmi_FREE(ptr, freeFcn)                   \
 	if((ptr) != NULL) {\
-	   freeFcn((void *)(ptr));\
+	   free((void *)(ptr));\
        (ptr) = NULL;\
     }
 

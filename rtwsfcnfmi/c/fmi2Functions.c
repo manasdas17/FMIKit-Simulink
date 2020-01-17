@@ -43,6 +43,11 @@ typedef struct {
 
 fmi2CallbackAllocateMemory allocateMemory = NULL;
 
+static void logMessage(Model *model, int status, const char *message, ...) {
+	UserData *userData = (UserData *)model->userData;
+	userData->functions.logger(userData->functions.componentEnvironment, model->instanceName, status, "", message);
+}
+
 /* FMI memory allocation with zero initialization */
 void* allocateMemory0(size_t nobj, size_t size);
 /* logger wrapper for handling of enabled/disabled logging */
@@ -56,7 +61,7 @@ const char *RT_MEMORY_ALLOCATION_ERROR = "Error when allocating SimStruct solver
 extern void rt_InitInfAndNaN(size_t realSize);
 
 /* Globals used for child S-functions */
-Model* currentModel = NULL;
+extern Model* currentModel;
 const char* _SFCN_FMI_MATLAB_BIN = NULL;
 
 /* -----------------------------------------------------------
@@ -91,151 +96,33 @@ fmi2Component fmi2Instantiate(fmi2String	instanceName,
 								fmi2Boolean	visible,
 								fmi2Boolean	loggingOn)
 {
-	Model* model;
-
-	/* Set global memory allocation function */
-	if (allocateMemory == NULL) {
-		allocateMemory = functions->allocateMemory;
-	}
-
-	model = (Model*) allocateMemory0(1, sizeof(Model));
-	if (model == NULL) {
-		goto fail;
-	}
-
-	UserData *userData = (UserData *)allocateMemory0(1, sizeof(Model));
-
-	model->userData = userData;
-
 	/* The following arguments are ignored: fmuResourceLocation, visible */
 
+	// TODO: check GUID
+	///* verify GUID */
+	//if (strcmp(GUID, MODEL_GUID) != 0) {
+	//	logMessage(model, fmi2Error, "Invalid GUID: %s, expected %s\n", GUID, MODEL_GUID);
+	//	functions->freeMemory(model);
+	//	return NULL;
+	//}
+
+	// TODO: check logger callback
+
+	UserData *userData = (UserData *)calloc(1, sizeof(UserData));
 	userData->functions = *functions;
 
-	/* verify GUID */
-	if (strcmp(GUID, MODEL_GUID) != 0) {
-		logger(model, instanceName, fmi2Error, "", "Invalid GUID: %s, expected %s\n", GUID, MODEL_GUID);
-		functions->freeMemory(model);
-		return NULL;
-	}
+	Model *model = InstantiateModel(instanceName, logMessage, userData);
 
-	model->instanceName = strDup(functions, instanceName);
-	if (model->instanceName == NULL) {
-		goto fail;
-	}
-
-	model->loggingOn = loggingOn;
-	model->shouldRecompute = fmi2False;
-	model->time = 0.0;
-	model->nbrSolverSteps = 0.0;
-	model->isDiscrete = fmi2False;
 	model->isCoSim = fmi2False;
 	model->hasEnteredContMode = fmi2False;
 	if (fmuType == fmi2CoSimulation) {
 		model->isCoSim = fmi2True;
 		if (functions->stepFinished != NULL) {
-			logger(model, model->instanceName, fmi2Warning, "", "fmi2Instantiate: Callback function stepFinished != NULL but asynchronous fmi2DoStep is not supported\n");
+			logMessage(model, fmi2Warning, "fmi2Instantiate: Callback function stepFinished != NULL but asynchronous fmi2DoStep is not supported");
 		}
 	}
-	
-	if (SFCN_FMI_LOAD_MEX) {
-#if defined(_MSC_VER)
-		model->mexHandles = (HINSTANCE*) allocateMemory0(SFCN_FMI_NBR_MEX+1, sizeof(HINSTANCE));
-#else
-		model->mexHandles = (void**) allocateMemory0(SFCN_FMI_NBR_MEX+1, sizeof(void*));
-#endif
-		/* Handle loading of MATLAB binaries and binary MEX S-functions */
-		if (!LoadMEXAndDependencies(model)) {
-			goto fail;
-		}
-#if defined(_MSC_VER)
-		SetDllDirectory(0);
-#endif
-	}
-	if (SFCN_FMI_NBR_MEX > 0) {
-		currentModel = model;
-	}
 
-	model->S = CreateSimStructForFMI(model->instanceName);
-	if (model->S == NULL) {
-		goto fail;
-	}
-
-	/* Register model callback functions in Simstruct */
-	sfcn_fmi_registerMdlCallbacks_(model->S);
-
-	/* Initialize sizes and create vectors */
-	sfcnInitializeSizes(model->S);
-	allocateSimStructVectors(model);
-
-	/* Create solver data and ZC vector */
-	rt_CreateIntegrationData(model->S);
-	model->S->mdlInfo->solverInfo->zcSignalVector  = (real_T*) allocateMemory0(SFCN_FMI_ZC_LENGTH+1, sizeof(real_T));
-	model->S->states.nonsampledZCs     = model->S->mdlInfo->solverInfo->zcSignalVector;
-	/* Register model callback for ODE solver */
-	sfcn_fmi_registerRTModelCallbacks_(model->S);
-
-	/* Initialize sample times and sample flags */
-	sfcnInitializeSampleTimes(model->S);
-	setSampleStartValues(model);
-
-	/* non-finites */
-	rt_InitInfAndNaN(sizeof(real_T));
-	/* Create and initialize global tunable parameters */
-	sfcn_fmi_mxGlobalTunable_(model->S, 1, 0);
-	/* Call mdlStart */
-	if (ssGetmdlStart(model->S) != NULL) {
-		sfcnStart(model->S);
-	}
-
-	/* Allocate model vectors */
-	model->oldZC = (real_T*) allocateMemory0(SFCN_FMI_ZC_LENGTH+1, sizeof(real_T));
-	model->numSampleHits = (int_T*) allocateMemory0(model->S->sizes.numSampleTimes+1, sizeof(int_T));
-	model->inputs = (void**) allocateMemory0(SFCN_FMI_NBR_INPUTS+1, sizeof(void*));
-	model->outputs = (void**) allocateMemory0(SFCN_FMI_NBR_OUTPUTS+1, sizeof(void*));
-	model->parameters = (void**) allocateMemory0(SFCN_FMI_NBR_PARAMS+1, sizeof(void*));
-	model->blockoutputs = (void**) allocateMemory0(SFCN_FMI_NBR_BLOCKIO+1, sizeof(void*));
-	model->dwork = (void**) allocateMemory0(SFCN_FMI_NBR_DWORK+1, sizeof(void*));
-	model->inputDerivatives = (fmi2Real*) allocateMemory0(SFCN_FMI_NBR_INPUTS+1, sizeof(fmi2Real));
-
-	/* Assign variable pointers for use in fmiSetReal and fmiGetReal */
-	sfcn_fmi_assignInputs_(model->S, model->inputs);
-	sfcn_fmi_assignOutputs_(model->S, model->outputs);
-	sfcn_fmi_assignParameters_(model->S, model->parameters);	/* Also allocates parameter struct for model instance and stores in UserData */
-	sfcn_fmi_assignBlockOutputs_(model->S, model->blockoutputs);
-	sfcn_fmi_assignDWork_(model->S, model->dwork);
-
-	/* Check Simstruct error status and stop requested */
-	if ((ssGetErrorStatus(model->S) != NULL) || (ssGetStopRequested(model->S) != 0)) {
-		goto fail;
-	}
-
-	model->status = modelInstantiated;
-
-	logger(model, instanceName, fmi2OK, "", "Instantiation succeeded\n");
 	return model;
-
-fail:
-	if (model != NULL) {
-		fmi2String iName = instanceName != NULL ? instanceName : "";
-		if (model->S != NULL) {
-			if ((ssGetErrorStatus(model->S) != NULL) || (ssGetStopRequested(model->S) != 0)) {
-				if (ssGetStopRequested(model->S) != 0) {
-					logger(model, iName, fmi2Error, "",
-						"Stop requested by S-function!\n");
-				}
-				if (ssGetErrorStatus(model->S) != NULL) {
-					logger(model, iName, fmi2Error, "",
-						"Error reported by S-function: %s\n", ssGetErrorStatus(model->S));
-				}
-				fmi2FreeInstance(model);
-				return NULL;
-			}
-		}
-		logger(model, iName, fmi2Fatal, "",
-			"Instantiation failed due to problems with memory allocation or dynamic loading.\n");
-		fmi2FreeInstance(model);
-	}
-	return NULL;
 }
 
 void fmi2FreeInstance(fmi2Component c)
