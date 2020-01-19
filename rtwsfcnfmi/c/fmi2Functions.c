@@ -575,120 +575,31 @@ fmi2Status fmi2EnterEventMode(fmi2Component c)
 
 fmi2Status fmi2NewDiscreteStates(fmi2Component c, fmi2EventInfo* eventInfo)
 {
-	int i;
-	Model* model = (Model*) c;
-	fmi2Real nextT;
-	real_T compareVal;
-	int_T sampleHit = 0;
 
-	CHECK_INITIALIZED(model, "fmi2NewDiscreteStates");
+    Model* model = (Model*) c;
+
+    CHECK_INITIALIZED(model, "fmi2NewDiscreteStates");
+    
+    fmi2Boolean valuesOfContinuousStatesChanged = fmi2False;
+    real_T nextT = SFCN_FMI_MAX_TIME;
+    
+    NewDiscreteStates(model, &valuesOfContinuousStatesChanged, &nextT);
 
 #if defined(SFCN_FMI_VERBOSITY)
 	logger(model, model->instanceName, fmi2OK, "", "fmi2NewDiscreteStates: Call at time = %.16f\n", ssGetT(model->S));
 #endif
 
-	/* Set sample hits for discrete systems */
-	for (i=0;i<model->S->sizes.numSampleTimes;i++) {
-		if (model->S->stInfo.sampleTimes[i] > SFCN_FMI_EPS) { /* Discrete sample time */
-			if (i==0) {
-				compareVal = model->nextHit_tid0; /* Purely discrete, use stored hit time for task 0 */
-				model->isDiscrete = fmi2True;
-			} else {
-				compareVal = model->S->mdlInfo->t[i];
-			}
-			if (isEqual(ssGetT(model->S), compareVal)) {
-				sampleHit = 1;
-				model->S->mdlInfo->sampleHits[i] = 1;
-#if defined(SFCN_FMI_VERBOSITY)
-				logger(model, model->instanceName, fmi2OK, "", "fmi2NewDiscreteStates: Sample hit for task %d\n", i);
-#endif
-				/* Update time for next sample hit */
-				model->numSampleHits[i]++;
-			}
-		}
-	}
-	/* Set sample hit for continuous sample time with FIXED_IN_MINOR_STEP_OFFSET */
-	if (model->fixed_in_minor_step_offset_tid != -1) {
-		/* Except first call after initialization */
-		model->S->mdlInfo->sampleHits[model->fixed_in_minor_step_offset_tid] = 0;
-		if (model->hasEnteredContMode) {
-			model->S->mdlInfo->sampleHits[model->fixed_in_minor_step_offset_tid] = 1;
-		}
-	}
-	if (SFCN_FMI_LOAD_MEX) {
-		copyPerTaskSampleHits(model->S);
-	}
-
-	if (!(model->isDiscrete && !sampleHit)) { /* Do not evaluate model if purely discrete and no sample hit */
-		model->S->mdlInfo->simTimeStep = MAJOR_TIME_STEP;
-		sfcnOutputs(model->S, 0);
-		_ssSetTimeOfLastOutput(model->S,model->S->mdlInfo->t[0]);
-		if (ssGetmdlUpdate(model->S) != NULL) {
-#if defined(SFCN_FMI_VERBOSITY)
-			logger(model, model->instanceName, fmi2OK, "", "fmi2NewDiscreteStates: Calling mdlUpdate at time %.16f\n", ssGetT(model->S));
-#endif
-			sfcnUpdate(model->S, 0);
-		}
-		model->S->mdlInfo->simTimeStep = MINOR_TIME_STEP;
-	}
-
-	/* Find next time event and reset sample hits */
-	nextT = SFCN_FMI_MAX_TIME;
-	for (i=0;i<model->S->sizes.numSampleTimes;i++) {
-		if (model->S->stInfo.sampleTimes[i] > SFCN_FMI_EPS) { /* Discrete sample time */
-			compareVal = model->S->stInfo.offsetTimes[i] + model->numSampleHits[i]*model->S->stInfo.sampleTimes[i];
-			if (i==0) {
-				/* Store, will be overwritten by fmiSetTime */
-				model->nextHit_tid0 = compareVal;
-			} else {
-				model->S->mdlInfo->t[i] = compareVal;
-			}
-			if (compareVal < nextT) {
-				nextT = compareVal;
-			}
-			model->S->mdlInfo->sampleHits[i] = 0;
-		}
-	}
-	if (model->fixed_in_minor_step_offset_tid != -1) {
-		model->S->mdlInfo->sampleHits[model->fixed_in_minor_step_offset_tid] = 0;
-	}
-	if (SFCN_FMI_LOAD_MEX) {
-		copyPerTaskSampleHits(model->S);
-	}
-	/* Only treat zero crossing functions for model exchange */
-	if (!(model->isCoSim)) {
-		if (model->S->modelMethods.sFcn.mdlZeroCrossings != NULL) {
-			sfcnZeroCrossings(model->S);
-		}
-		for (i=0;i<SFCN_FMI_ZC_LENGTH;i++) {
-			/* Store current ZC values at event */
-			model->oldZC[i] = model->S->mdlInfo->solverInfo->zcSignalVector[i];
-		}
-	}
-	model->shouldRecompute = fmi2True;
-
-	eventInfo->newDiscreteStatesNeeded				= fmi2False;
-    eventInfo->terminateSimulation					= fmi2False;
-    eventInfo->nominalsOfContinuousStatesChanged	= fmi2False;
-    eventInfo->valuesOfContinuousStatesChanged		= fmi2False;
-#if defined(MATLAB_R2017b_)
-	if (model->S->mdlInfo->mdlFlags.blockStateForSolverChangedAtMajorStep) {
-		model->S->mdlInfo->mdlFlags.blockStateForSolverChangedAtMajorStep = 0U;
-#else
-	if (model->S->mdlInfo->solverNeedsReset == 1) {
-		_ssClearSolverNeedsReset(model->S);
-#endif
-		eventInfo->valuesOfContinuousStatesChanged = fmi2True;
-#if defined(SFCN_FMI_VERBOSITY)
-		logger(model, model->instanceName, fmi2OK, "", "fmi2NewDiscreteStates: State values changed at time %.16f\n", ssGetT(model->S));
-#endif
-	}
-	eventInfo->nextEventTimeDefined = (nextT < SFCN_FMI_MAX_TIME);
-	eventInfo->nextEventTime = nextT;
+	eventInfo->newDiscreteStatesNeeded			 = fmi2False;
+    eventInfo->terminateSimulation				 = fmi2False;
+    eventInfo->nominalsOfContinuousStatesChanged = fmi2False;
+    eventInfo->valuesOfContinuousStatesChanged   = valuesOfContinuousStatesChanged;
+	eventInfo->nextEventTimeDefined              = (nextT < SFCN_FMI_MAX_TIME);
+	eventInfo->nextEventTime                     = nextT;
 
 #if defined(SFCN_FMI_VERBOSITY)
 		logger(model, model->instanceName, fmi2OK, "", "fmi2NewDiscreteStates: Event handled at time = %.16f, next event time at %.16f\n", ssGetT(model->S), nextT);
 #endif
+    
 	return fmi2OK;
 }
 
