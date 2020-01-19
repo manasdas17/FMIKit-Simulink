@@ -71,6 +71,7 @@ void resetSimStructVectors(SimStruct *S);
 void ReseModel(Model* model);
 void allocateSimStructVectors(Model* m);
 void setSampleStartValues(Model* m);
+void NewDiscreteStates(Model *model, int *valuesOfContinuousStatesChanged, real_T *nextT);
 
 /* ODE solver functions */
 extern void rt_CreateIntegrationData(SimStruct *S);
