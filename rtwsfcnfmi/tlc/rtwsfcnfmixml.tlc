@@ -30,7 +30,11 @@
   version="%<ModelVersion>"
   numberOfEventIndicators="%<ZCVectorlength>">
   
-  <CoSimulation modelIdentifier="%<OrigName>_sf"/>
+  %if FMIType == "CoSimulation"
+  <CoSimulation modelIdentifier="%<OrigName>_sf" canHandleVariableCommunicationStepSize="true" canInterpolateInputs="true"/>
+  %else
+  <ModelExchange modelIdentifier="%<OrigName>_sf"/>
+  %endif
   %if ISFIELD(CompiledModel, "Units") && Units.NumUnits > 1
   
   <UnitDefinitions>
@@ -82,11 +86,15 @@
   %if "%<StopTime>" != "rtInf"
     stopTime="%<StopTime>"
   %endif
-    stepSize="%<FixedStepOpts.FixedStep>"/>
+  %if "%<SolverType>" == "FixedStep"
+    stepSize="%<FixedStepOpts.FixedStep>"
+  %endif
+  />
 
   <ModelVariables>
   %assign vr = 1
   %assign outputIndices = []
+  %assign derivativeIndices = []
   %selectfile incfile
 #include "%<OrigName>_sf.h"
 
@@ -96,38 +104,7 @@ typedef struct {
 	void* address;
 } ModelVariable;
 
-#ifndef NO_FMI_FUNCTION_PREFIX
-  %if FMIVersion == "2"
-#define FMI2_FUNCTION_PREFIX %<OrigName>_
-  %else
-#define FMI3_FUNCTION_PREFIX %<OrigName>_
-  %endif
-#endif
-
-#define MODEL_GUID       "%<GUID>"
-#define MODEL            %<OrigName>
-#define MODEL_INITIALIZE %<OrigName>_initialize
-#define MODEL_STEP       %<OrigName>_step
-#define MODEL_TERMINATE  %<OrigName>_terminate
-#define RT_MDL_TYPE      %<tSimStructType>
-#define STEP_SIZE        %<FixedStepOpts.FixedStep>
-
-/* R2019a defines the block parameters as extern */
-#ifndef rtmGetDefaultParam
-#define rtmGetDefaultParam(S) (&%<OrigName>_P)
-#endif
-
-%if reusableFunction
-#define REUSABLE_FUNCTION
-%else
-/* Definitions for non-reusable models */
-#define RT_MDL_INSTANCE     %<tSimStruct>
-#define rtmGetU(S)          (&%<tInput>)
-#define rtmGetY(S)          (&%<tOutput>)
-#define rtmGetBlockIO(S)    (&%<tBlockIO>)
-%endif
-
-static void initializeModelVariables(RT_MDL_TYPE* S, ModelVariable modelVariables[]) {
+static void initializeModelVariables(SimStruct* S, ModelVariable modelVariables[]) {
   %% Parameters
   %selectfile xmlfile
 
@@ -239,6 +216,32 @@ static void initializeModelVariables(RT_MDL_TYPE* S, ModelVariable modelVariable
       %endforeach
     %endif
   %endwith
+%% Continuous States
+
+    <!-- Continuous States -->
+  %with ::CompiledModel.ContStates
+    %foreach cstateid = NumContStates
+      %assign cstate   = ContState[cstateid]
+      %assign dataName = cstate.Identifier
+      %selectfile incfile
+    modelVariables[%<vr-1>].dtypeID = 0;
+    modelVariables[%<vr-1>].size    = 0;
+    modelVariables[%<vr-1>].address = &(((%<GlobalScope.tContStateType> *)ssGetContStates(S))->%<dataName>);
+    modelVariables[%<vr>].dtypeID = 0;
+    modelVariables[%<vr>].size    = 0;
+    modelVariables[%<vr>].address = &(((%<GlobalScope.tXdotType> *)ssGetdX(S))->%<dataName>);
+      %selectfile xmlfile
+    <ScalarVariable name="%<cstate.Identifier>" valueReference="%<vr>" initial="calculated">
+      <Real reinit="true"/>
+    </ScalarVariable>
+      %assign vr = vr + 1
+    <ScalarVariable name="der(%<cstate.Identifier>)" valueReference="%<vr>">
+      <Real derivative="%<vr-1>"/>
+    </ScalarVariable>
+      %assign derivativeIndices = derivativeIndices + vr
+      %assign vr = vr + 1
+    %endforeach
+  %endwith
   %% close fmiwrapper.inc
   %selectfile incfile
 }
@@ -259,6 +262,19 @@ static void initializeModelVariables(RT_MDL_TYPE* S, ModelVariable modelVariable
     %else
       %foreach iOutputIndex = SIZE(outputIndices, 1)
     <Output valueReference="%<outputIndices[iOutputIndex]>"/>
+      %endforeach
+    %endif
+  %endif
+  %if SIZE(derivativeIndices, 1) > 0
+    %if FMIVersion == "2"
+    <Derivatives>
+      %foreach iDerivativeIndex = SIZE(derivativeIndices, 1)
+      <Unknown index="%<derivativeIndices[iDerivativeIndex]>"/>
+      %endforeach
+    </Derivatives>
+    %else
+      %foreach iDerivativeIndex = SIZE(derivativeIndices, 1)
+    <Derivative valueReference="%<derivativeIndices[iDerivativeIndex]>"/>
       %endforeach
     %endif
   %endif

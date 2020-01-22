@@ -61,6 +61,7 @@ set(MODEL_SOURCES
   c/sfunction.c
   "${RTW_DIR}/sfcn_fmi.h"
   "${RTW_DIR}/sfcn_fmi.c"
+  "${RTW_DIR}/${MODEL_NAME}_sf.h"
   "${RTW_DIR}/${MODEL_NAME}_sf_data.c"
   "${RTW_DIR}/rtGetInf.c"
   "${RTW_DIR}/rtGetNaN.c"
