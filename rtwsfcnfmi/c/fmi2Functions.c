@@ -270,241 +270,24 @@ fmi2Status fmi2Reset(fmi2Component c)
 	return fmi2OK;
 }
 
-/***************** Get / Set functions/macros *****************/
-
-static void setValueReal(const void* vPtr, int dataType, fmi2Real value)
-{
-	switch (dataType) {
-		case SS_SINGLE:   /* real32_T  */
-			*((real32_T*)vPtr) = (real32_T) value;
-			break;
-		default:   /* All other cases treated as real_T */
-			*((real_T*)vPtr) = (real_T) value;
-			break;
-	}
+fmi2Status fmi2SetReal(fmi2Component c, const fmi2ValueReference vr[], size_t nvr, const fmi2Real value[]) {
+    return fmi2Error;
 }
 
-static void setValueInteger(const void* vPtr, int dataType, fmi2Integer value)
-{
-	switch (dataType) {
-		case SS_INT8:   /* int8_T  */
-			*((int8_T*)vPtr) = (int8_T) value;
-			break;
-		case SS_UINT8:   /* uint8_T  */
-			*((uint8_T*)vPtr) = (uint8_T) value;
-			break;
-		case SS_INT16:   /* int16_T  */
-			*((int16_T*)vPtr) = (int16_T) value;
-			break;
-		case SS_UINT16:   /* uint16_T  */
-			*((uint16_T*)vPtr) = (uint16_T) value;
-			break;
-		case SS_INT32:   /* int32_T  */
-			*((int32_T*)vPtr) = (int32_T) value;
-			break;
-		case SS_UINT32:   /* uint32_T  */
-			*((uint32_T*)vPtr) = (uint32_T) value;
-			break;
-		default:   /* All other cases treated as int32_T */
-			*((int32_T*)vPtr) = (int32_T) value;
-			break;
-	}
+fmi2Status fmi2SetInteger(fmi2Component c, const fmi2ValueReference vr[], size_t nvr, const fmi2Integer value[]) {
+    return fmi2Error;
 }
 
-static void setValueBoolean(const void* vPtr, int dataType, fmi2Boolean value)
-{
-	/* Should only be called if dataType is indeed boolean_T */
-	*((boolean_T*)vPtr) = (boolean_T) value;
+fmi2Status fmi2SetBoolean(fmi2Component c, const fmi2ValueReference vr[], size_t nvr, const fmi2Boolean value[]) {
+    return fmi2Error;
 }
 
-#define FMI_SET(label)												\
-	Model* model = (Model*) c;												\
-	size_t i;																\
-    fmi2Boolean allowed = fmi2True;											\
-	fmi2Boolean paramChanged = fmi2False;											\
-																			\
-	for (i = 0; i < nvr; i++) {												\
-		const fmi2ValueReference r = vr[i];									\
-		int index    = SFCN_FMI_INDEX(r);									\
-		int dataType = SFCN_FMI_DATATYPE(r);								\
-																			\
-		switch (SFCN_FMI_CATEGORY(r)) {										\
-        case SFCN_FMI_INPUT:												\
-			setValue ## label(model->inputs[index], dataType, value[i]);	\
-			model->shouldRecompute = fmi2True;\
-			break;															\
-		case SFCN_FMI_STATE:												\
-			if (model->isCoSim && model->status != modelInstantiated) {\
-				allowed = fmi2False;	\
-			} else {\
-				ssGetContStates(model->S)[index] = (real_T)value[i];			\
-				model->shouldRecompute = fmi2True;\
-			}\
-			break;															\
-		case SFCN_FMI_DERIVATIVE:\
-			if (model->status == modelInstantiated) {\
-				ssGetdX(model->S)[index] = (real_T)value[i];\
-			} else {\
-				allowed = fmi2False;			\
-			}\
-			break;															\
-        case SFCN_FMI_BLOCKIO:												\
-		    if (model->status == modelInstantiated) {					\
-				setValue ## label(model->blockoutputs[index], dataType, value[i]);	\
-			} else {														\
-                allowed = fmi2False;											\
-			}																\
-			break;															\
-		case SFCN_FMI_DWORK:												\
-		    if (model->status == modelInstantiated) {					\
-			    setValue ## label(model->dwork[index], dataType, value[i]);	\
-			} else {														\
-                allowed = fmi2False;											\
-			}																\
-			break;															\
-		case SFCN_FMI_PARAMETER:											\
-     		setValue ## label(model->parameters[index], dataType, value[i]);	\
-			model->shouldRecompute = fmi2True;\
-			paramChanged = fmi2True;\
-			break;															\
-        case SFCN_FMI_OUTPUT:												\
-     		if (model->status == modelInstantiated) {					\
-			    setValue ## label(model->outputs[index], dataType, value[i]);	\
-			} else {														\
-                allowed = fmi2False;											\
-			}																\
-			break;															\
-		default:															\
-	        logger(model, model->instanceName, fmi2Warning, "", "fmi2Set"#label": cannot set %u\n", r);		\
-            return fmi2Warning;												\
-		}																	\
-		if (allowed == fmi2False) {											\
-			logger(model, model->instanceName, fmi2Warning, "", "fmi2Set"#label": may not change %u at this stage\n", r);	\
-			return fmi2Warning;												\
-		}																	\
-	}																		\
-	if (paramChanged == fmi2True && SFCN_FMI_LOAD_MEX) {											\
-		sfcn_fmi_copyToSFcnParams_(model->S);\
-		sfcn_fmi_mxGlobalTunable_(model->S, 1, 1);\
-	}\
-	return fmi2OK
-
-static fmi2Real getValueReal(const void* vPtr, int dataType)
-{
-	switch (dataType) {
-		case SS_SINGLE:   /* real32_T  */
-			return (fmi2Real) (*((real32_T*)vPtr));
-		default:   /* All other cases treated as real_T */
-			return (fmi2Real) (*((real_T*)vPtr));
-	}
-}
-
-static fmi2Integer getValueInteger(const void* vPtr, int dataType)
-{
-	switch (dataType) {
-		case SS_INT8:   /* int8_T  */
-			return (fmi2Integer) (*((int8_T*)vPtr));
-		case SS_UINT8:   /* uint8_T  */
-			return (fmi2Integer) (*((uint8_T*)vPtr));
-		case SS_INT16:   /* int16_T  */
-			return (fmi2Integer) (*((int16_T*)vPtr));
-		case SS_UINT16:   /* uint16_T  */
-			return (fmi2Integer) (*((uint16_T*)vPtr));
-		case SS_INT32:   /* int32_T  */
-			return (fmi2Integer) (*((int32_T*)vPtr));
-		case SS_UINT32:   /* uint32_T  */
-			return (fmi2Integer) (*((uint32_T*)vPtr));
-		default:   /* All other cases treated as int32_T */
-			return (fmi2Integer) (*((int32_T*)vPtr));
-	}
-}
-
-static fmi2Boolean getValueBoolean(const void* vPtr, int dataType)
-{
-	/* Should only be called if dataType is indeed boolean_T */
-	return (fmi2Boolean) (*((boolean_T*)vPtr));
-}
-
-#define FMI_GET(label)												\
-	Model* model = (Model*) c;											\
-	size_t i;															\
-																		\
-	if (model->status == modelInstantiated) {                     \
-		logger(model, model->instanceName, fmi2Warning, "", "fmi2Get"#label": Not allowed before call to fmi2EnterInitializationMode\n"); \
-		return fmi2Warning;                                              \
-	}																	\
-																		\
-	if (!model->isCoSim && !model->isDiscrete) {\
-		if ((!isEqual(ssGetT(model->S), model->lastGetTime)) || model->shouldRecompute) {\
-			sfcnOutputs(model->S,0);											\
-			_ssSetTimeOfLastOutput(model->S,model->S->mdlInfo->t[0]);			\
-			if (ssGetmdlDerivatives(model->S) != NULL) {						\
-				sfcnDerivatives(model->S);										\
-			}																	\
-			model->S->mdlInfo->simTimeStep = MINOR_TIME_STEP;					\
-			model->shouldRecompute = fmi2False;\
-			model->lastGetTime = ssGetT(model->S);\
-		}\
-	}\
-																		\
-	for (i = 0; i < nvr; i++) {											\
-		const fmi2ValueReference r = vr[i];								\
-		int index = SFCN_FMI_INDEX(r);									\
-		int dataType = SFCN_FMI_DATATYPE(r);							\
-																		\
-		switch (SFCN_FMI_CATEGORY(r)) {									\
-        case SFCN_FMI_INPUT:											\
-			value[i] = getValue ## label(model->inputs[index], dataType);	\
-			break;														\
-		case SFCN_FMI_STATE:											\
-			value[i] = (fmi2 ## label) ssGetContStates(model->S)[index];	\
-			break;														\
-		case SFCN_FMI_DERIVATIVE:										\
-			value[i] = (fmi2 ## label) ssGetdX(model->S)[index];			\
-			break;														\
-        case SFCN_FMI_BLOCKIO:											\
-		    value[i] = getValue ## label(model->blockoutputs[index], dataType);	\
-			break;														\
-		case SFCN_FMI_DWORK:											\
-		    value[i] = getValue ## label(model->dwork[index], dataType);	\
-			break;														\
-		case SFCN_FMI_PARAMETER:										\
-     		value[i] = getValue ## label(model->parameters[index], dataType);	\
-			break;														\
-        case SFCN_FMI_OUTPUT:											\
-     		value[i] = getValue ## label(model->outputs[index], dataType);	\
-			break;														\
-		default:														\
-			logger(model, model->instanceName, fmi2Warning, "", "fmi2Get"#label": cannot get %u\n", r);   \
-            return fmi2Warning;											\
-		}																\
-	}																	\
-	return fmi2OK;
-
-/* ---------------------------------------------------------------------- */
-
-fmi2Status fmi2SetReal(fmi2Component c, const fmi2ValueReference vr[], size_t nvr, const fmi2Real value[])
-{
-    FMI_SET(Real);
-}
-
-fmi2Status fmi2SetInteger(fmi2Component c, const fmi2ValueReference vr[], size_t nvr, const fmi2Integer value[])
-{
-	FMI_SET(Integer);
-}
-
-fmi2Status fmi2SetBoolean(fmi2Component c, const fmi2ValueReference vr[], size_t nvr, const fmi2Boolean value[])
-{
-	FMI_SET(Boolean);
-}
-
-fmi2Status fmi2SetString(fmi2Component c, const fmi2ValueReference vr[], size_t nvr, const fmi2String  value[])
-{
+fmi2Status fmi2SetString(fmi2Component c, const fmi2ValueReference vr[], size_t nvr, const fmi2String  value[]) {
 	FMI_UNSUPPORTED(SetString);
 }
 
-fmi2Status fmi2GetReal(fmi2Component c, const fmi2ValueReference vr[], size_t nvr, fmi2Real value[])
-{
+fmi2Status fmi2GetReal(fmi2Component c, const fmi2ValueReference vr[], size_t nvr, fmi2Real value[]) {
+    
     for (size_t i = 0; i < nvr; i++) {
         
         if (vr[i] > N_MODEL_VARIABLES) {
@@ -528,13 +311,12 @@ fmi2Status fmi2GetReal(fmi2Component c, const fmi2ValueReference vr[], size_t nv
     return fmi2OK;
 }
 
-fmi2Status fmi2GetInteger(fmi2Component c, const fmi2ValueReference vr[], size_t nvr, fmi2Integer value[])
-{
-	FMI_GET(Integer);
+fmi2Status fmi2GetInteger(fmi2Component c, const fmi2ValueReference vr[], size_t nvr, fmi2Integer value[]) {
+    return fmi2Error;
 }
 
-fmi2Status fmi2GetBoolean(fmi2Component c, const fmi2ValueReference vr[], size_t nvr, fmi2Boolean value[])
-{
+fmi2Status fmi2GetBoolean(fmi2Component c, const fmi2ValueReference vr[], size_t nvr, fmi2Boolean value[]) {
+    
 	    for (size_t i = 0; i < nvr; i++) {
         
         if (vr[i] > N_MODEL_VARIABLES) {
@@ -950,17 +732,18 @@ fmi2Status fmi2GetRealOutputDerivatives(fmi2Component c, const fmi2ValueReferenc
 
 static void extrapolateInputs(Model* model, fmi2Real t)
 {
-	size_t i;
-	fmi2Real dt = (t - model->derivativeTime);
-	for (i = 0; i < SFCN_FMI_NBR_INPUTS; i++) {
-		if (model->inputDerivatives[i] != 0.0) {
-			*((real_T*)(model->inputs[i])) += model->inputDerivatives[i] * dt;
-#if defined(SFCN_FMI_VERBOSITY)
-			logger(model, model->instanceName, fmi2OK, "", "Extrapolated input #%d to value = %.16f\n", i, *((real_T*)(model->inputs[i])));
-#endif
-		}
-	}
-	model->derivativeTime = t;
+    // TODO: fix this
+//	size_t i;
+//	fmi2Real dt = (t - model->derivativeTime);
+//	for (i = 0; i < SFCN_FMI_NBR_INPUTS; i++) {
+//		if (model->inputDerivatives[i] != 0.0) {
+//			*((real_T*)(model->inputs[i])) += model->inputDerivatives[i] * dt;
+//#if defined(SFCN_FMI_VERBOSITY)
+//			logger(model, model->instanceName, fmi2OK, "", "Extrapolated input #%d to value = %.16f\n", i, *((real_T*)(model->inputs[i])));
+//#endif
+//		}
+//	}
+//	model->derivativeTime = t;
 }
 
 fmi2Status fmi2DoStep(fmi2Component c, fmi2Real currentCommunicationPoint, fmi2Real communicationStepSize, fmi2Boolean noSetFMUStatePriorToCurrentPoint)

@@ -91,12 +91,6 @@ extern void  sfcn_fmi_mxGlobalTunable_(SimStruct* S, int_T create, int_T update)
 extern void* sfcn_fmi_allocateBusObject(int_T isInput, int_T portid, int_T width);
 extern void  sfcn_fmi_registerMdlCallbacks_(SimStruct* S);
 extern void  sfcn_fmi_registerRTModelCallbacks_(SimStruct*S);
-extern void  sfcn_fmi_assignInputs_(SimStruct* S, void** inputs);
-extern void  sfcn_fmi_assignOutputs_(SimStruct* S, void** outputs);
-extern void  sfcn_fmi_assignParameters_(SimStruct* S, void** parameters);
-extern void  sfcn_fmi_assignBlockOutputs_(SimStruct* S, void** blockoutputs);
-extern void  sfcn_fmi_assignDWork_(SimStruct* S, void** dwork);
-extern void* sfcn_fmi_getParametersP_(SimStruct* S);
 extern void  sfcn_fmi_copyToSFcnParams_(SimStruct* S);
 extern void* sfcn_fmi_allocateBusObject(int_T isInput, int_T portid, int_T width);
 extern void  sfcn_fmi_mxGlobalTunable_(SimStruct* S, int_T create, int_T update);
@@ -233,49 +227,6 @@ void sfcn_fmi_registerRTModelCallbacks_(SimStruct*S)
   S->mdlInfo->solverInfo->modelMethodsPtr->rtmOutputsFcn = (rtMdlOutputsFcn) mdlOutputs;
 }
 
-/* Pointers to input variables */
-void sfcn_fmi_assignInputs_(SimStruct* S, void** inputs)
-{
-%if nbrInputsScalar > 0
-  %include "%<buildDir>/inputs.tmp"
-}
-%else
-  return; /* No inputs */
-}
-%endif
-/* Pointers to output variables */
-void sfcn_fmi_assignOutputs_(SimStruct* S, void** outputs)
-{
-%if nbrOutputsScalar > 0
-  %include "%<buildDir>/outputs.tmp"
-}
-%else
-  return; /* No outputs */
-}
-%endif
-%if nbrParamsScalar > 0
-/* Parameter assignment functions */
-  %include "%<buildDir>/params.tmp"
-%endif
-/* Pointers to model parameters */
-void sfcn_fmi_assignParameters_(SimStruct* S, void** parameters)
-{
-%if nbrParamsScalar > 0
-  %<parType>* p = calloc(1, sizeof(%<parType>));
-  (*p) = %<defParam>;
-  %assign paramFunctionCount = CAST("Number", FEVAL("floor", nbrParamsScalar/500))+1
-  %foreach funcid = paramFunctionCount
-    sfcn_fmi_paramFunc%<funcid>_(p, parameters);
-  %endforeach
-  ssSetLocalDefaultParam(S, p);
-  %if ISFIELD(::CompiledModel, "NumSFunctionNameCounts") && !LoadBinaryMEX
-  /* Assign code generation mxArrays to S-function parameters */
-  %<OutputSFcnParameterCode(1)>
-  %endif
-%else
-  return; /* No parameters in model (probably due to inlining) */
-%endif
-}
 /* Copy parameter values to S-function mxArrays */
 void sfcn_fmi_copyToSFcnParams_(SimStruct* S)
 {
@@ -293,15 +244,7 @@ void sfcn_fmi_copyToSFcnParams_(SimStruct* S)
   return; /* No parameters in model (probably due to inlining) */
 %endif
 }
-/* Return pointer to parameter struct in UserData */
-void* sfcn_fmi_getParametersP_(SimStruct* S)
-{
-%if nbrParamsScalar > 0
-  return ssGetLocalDefaultParam(S);
-%else
-  return 0;
-%endif
-}
+
 /* Handle mxArrays for global tunable parameters */
 void sfcn_fmi_mxGlobalTunable_(SimStruct* S, int_T create, int_T update)
 {
@@ -348,27 +291,7 @@ void sfcn_fmi_mxGlobalTunable_(SimStruct* S, int_T create, int_T update)
   return; /* no global tunable parameters as mxArrays */
 %endif
 }
-/* Pointers to block output variables */
-void sfcn_fmi_assignBlockOutputs_(SimStruct* S, void** blockoutputs)
-{
-%if nbrBlockIOScalar > 0
-  /* Called from fmiInitialize after mdlStart has assigned BlockIO to Simstruct UserData */
-  %include "%<buildDir>/blockio.tmp"
-}
-%else
-  return; /* No global block outputs */
-}
-%endif
-/* Pointers to DWork variables for discrete states */
-void sfcn_fmi_assignDWork_(SimStruct* S, void** dwork)
-{
-%if nbrDWorkScalar > 0
-  %include "%<buildDir>/dwork.tmp"
-}
-%else
-  return; /* No DWork variables for discrete states */
-}
-%endif
+
 /* Sizes of bus I/O structs for allocation in FMU */
 void* sfcn_fmi_allocateBusObject(int_T isInput, int_T portid, int_T width)
 {

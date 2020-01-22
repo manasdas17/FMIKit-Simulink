@@ -358,19 +358,7 @@ Model *InstantiateModel(const char* instanceName, logMessageCallback logMessage,
 	/* Allocate model vectors */
 	model->oldZC = (real_T*)calloc(SFCN_FMI_ZC_LENGTH + 1, sizeof(real_T));
 	model->numSampleHits = (int_T*)calloc(model->S->sizes.numSampleTimes + 1, sizeof(int_T));
-	model->inputs = (void**)calloc(SFCN_FMI_NBR_INPUTS + 1, sizeof(void*));
-	model->outputs = (void**)calloc(SFCN_FMI_NBR_OUTPUTS + 1, sizeof(void*));
-	model->parameters = (void**)calloc(SFCN_FMI_NBR_PARAMS + 1, sizeof(void*));
-	model->blockoutputs = (void**)calloc(SFCN_FMI_NBR_BLOCKIO + 1, sizeof(void*));
-	model->dwork = (void**)calloc(SFCN_FMI_NBR_DWORK + 1, sizeof(void*));
 	model->inputDerivatives = (real_T*)calloc(SFCN_FMI_NBR_INPUTS + 1, sizeof(real_T));
-
-	/* Assign variable pointers for use in fmiSetReal and fmiGetReal */
-	sfcn_fmi_assignInputs_(model->S, model->inputs);
-	sfcn_fmi_assignOutputs_(model->S, model->outputs);
-	sfcn_fmi_assignParameters_(model->S, model->parameters);	/* Also allocates parameter struct for model instance and stores in UserData */
-	sfcn_fmi_assignBlockOutputs_(model->S, model->blockoutputs);
-	sfcn_fmi_assignDWork_(model->S, model->dwork);
 
 	/* Check Simstruct error status and stop requested */
 	if ((ssGetErrorStatus(model->S) != NULL) || (ssGetStopRequested(model->S) != 0)) {
@@ -541,8 +529,9 @@ void FreeModel(Model* model) {
         if (ssGetUserData(model->S) != NULL ) {
             if (SFCN_FMI_NBR_PARAMS > 0) {
                 /* Free dynamically allocated parameters for this instance */
-                paramP = sfcn_fmi_getParametersP_(model->S);
-                free(paramP);
+                // TODO: remove?
+//                paramP = sfcn_fmi_getParametersP_(model->S);
+//                free(paramP);
             }
         }
         /* Call mdlTerminate here, since that clears S-function Userdata */
@@ -570,11 +559,6 @@ void FreeModel(Model* model) {
     free(model->dX);
     free(model->oldZC);
     free(model->numSampleHits);
-    free(model->inputs);
-    free(model->outputs);
-    free(model->parameters);
-    free(model->blockoutputs);
-    free(model->dwork);
     free(model->mexHandles);
     free(model->inputDerivatives);
     free(model);
@@ -646,8 +630,9 @@ void ResetModel(Model* model) {
     setSampleStartValues(model);
     if (ssGetUserData(model->S) != NULL ) {
         if (SFCN_FMI_NBR_PARAMS > 0) {
-            paramP = sfcn_fmi_getParametersP_(model->S);
-            free(paramP);
+            // TODO: remove?
+//            paramP = sfcn_fmi_getParametersP_(model->S);
+//            free(paramP);
         }
     }
     sfcnTerminate(model->S);
@@ -657,7 +642,6 @@ void ResetModel(Model* model) {
     if (ssGetmdlInitializeConditions(model->S) != NULL) {
         sfcnInitializeConditions(model->S);
     }
-    sfcn_fmi_assignParameters_(model->S, model->parameters);
     memset(model->oldZC,            0, (SFCN_FMI_ZC_LENGTH+1)*sizeof(real_T));
     memset(model->numSampleHits,    0, (model->S->sizes.numSampleTimes+1)*sizeof(int_T));
     model->fixed_in_minor_step_offset_tid = 0;

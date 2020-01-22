@@ -34,11 +34,6 @@ struct Model_s {
 	int_T* numSampleHits;
 	int_T fixed_in_minor_step_offset_tid;
 	real_T nextHit_tid0;
-	void** inputs;
-	void** outputs;
-	void** parameters;
-	void** blockoutputs;
-	void** dwork;
 	real_T lastGetTime;
 	int shouldRecompute;
 	int isCoSim;
