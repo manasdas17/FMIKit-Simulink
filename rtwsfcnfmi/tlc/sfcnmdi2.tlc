@@ -8,7 +8,7 @@
 
 %% Starting generation of modelDescription.xml
 %assign nbrVariables = 1
-%openfile xmlfile = "modelDescription.xml"
+%openfile xmlfile = "modelDescription_.xml"
 %openfile inputfile = "inputs.tmp"
 %openfile outputfile = "outputs.tmp"
 %openfile paramfile = "params.tmp"

@@ -18,6 +18,10 @@
 #include "fmi2Functions.h"	/* Official FMI 2.0 header */
 #include "sfunction.h"
 
+#include "fmiwrapper.inc"
+
+static ModelVariable s_modelVariables[N_MODEL_VARIABLES];
+
 typedef struct {
 	fmi2CallbackFunctions functions;
 	fmi2EventInfo eventInfo;
@@ -121,6 +125,8 @@ fmi2Component fmi2Instantiate(fmi2String	instanceName,
 
 	Model *model = InstantiateModel(instanceName, logMessage, userData);
 
+    initializeModelVariables(model->S, s_modelVariables);
+    
 	model->isCoSim = fmi2False;
 	model->hasEnteredContMode = fmi2False;
 	if (fmuType == fmi2CoSimulation) {
@@ -499,7 +505,27 @@ fmi2Status fmi2SetString(fmi2Component c, const fmi2ValueReference vr[], size_t 
 
 fmi2Status fmi2GetReal(fmi2Component c, const fmi2ValueReference vr[], size_t nvr, fmi2Real value[])
 {
-	FMI_GET(Real);
+    for (size_t i = 0; i < nvr; i++) {
+        
+        if (vr[i] > N_MODEL_VARIABLES) {
+            continue;
+        }
+        
+        ModelVariable *mv = &s_modelVariables[vr[i] - 1];
+        
+        switch (mv->dtypeID) {
+            case SS_SINGLE:
+                value[i] = *((real32_T *)mv->address);
+                break;
+            case SS_DOUBLE:
+                value[i] = *((real_T *)mv->address);
+                break;
+            default:
+                return fmi2Error;
+        }
+    }
+    
+    return fmi2OK;
 }
 
 fmi2Status fmi2GetInteger(fmi2Component c, const fmi2ValueReference vr[], size_t nvr, fmi2Integer value[])
@@ -509,7 +535,24 @@ fmi2Status fmi2GetInteger(fmi2Component c, const fmi2ValueReference vr[], size_t
 
 fmi2Status fmi2GetBoolean(fmi2Component c, const fmi2ValueReference vr[], size_t nvr, fmi2Boolean value[])
 {
-	FMI_GET(Boolean);
+	    for (size_t i = 0; i < nvr; i++) {
+        
+        if (vr[i] > N_MODEL_VARIABLES) {
+            continue;
+        }
+        
+        ModelVariable *mv = &s_modelVariables[vr[i] - 1];
+        
+        switch (mv->dtypeID) {
+            case SS_BOOLEAN:
+                value[i] = *((boolean_T *)mv->address);
+                break;
+            default:
+                return fmi2Error;
+        }
+    }
+    
+    return fmi2OK;
 }
 
 fmi2Status fmi2GetString(fmi2Component c, const fmi2ValueReference vr[], size_t nvr, fmi2String  value[])

@@ -1,5 +1,5 @@
 %% Starting generation of modelDescription.xml
-%openfile xmlfile = "modelDescription_.xml"
+%openfile xmlfile = "modelDescription.xml"
 %openfile incfile = "fmiwrapper.inc"
 %with CompiledModel
   %assign reusableFunction = ISFIELD(ConfigSet, "CodeInterfacePackaging") && ConfigSet.CodeInterfacePackaging == "Reusable function"
@@ -30,7 +30,7 @@
   version="%<ModelVersion>"
   numberOfEventIndicators="%<ZCVectorlength>">
   
-  <CoSimulation modelIdentifier="%<OrigName>"/>
+  <CoSimulation modelIdentifier="%<OrigName>_sf"/>
   %if ISFIELD(CompiledModel, "Units") && Units.NumUnits > 1
   
   <UnitDefinitions>
@@ -88,8 +88,7 @@
   %assign vr = 1
   %assign outputIndices = []
   %selectfile incfile
-#include "%<OrigName>.h"
-#include "%<OrigName>_private.h"
+#include "%<OrigName>_sf.h"
 
 typedef struct {
 	BuiltInDTypeId dtypeID;
@@ -152,7 +151,7 @@ static void initializeModelVariables(RT_MDL_TYPE* S, ModelVariable modelVariable
         %assign identifier   = varGroupName + "." + param.Identifier
         %assign variableName = varGroupName + "." + variableName
       %endif
-      %assign dataName = "((%<GlobalScope.tParametersType> *)ssGetDefaultParam(S))->%<identifier>"
+      %assign dataName = "((%<GlobalScope.tParametersType> *)ssGetLocalDefaultParam(S))->%<identifier>"
       %if FMIVersion == "2"
         %assign vr = VariableFMI2(param, identifier, dataName, vr, " causality=\"parameter\" variability=\"tunable\"", "")
       %else
