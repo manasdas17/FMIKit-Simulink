@@ -526,14 +526,14 @@ void FreeModel(Model* model) {
 //    logger(model, model->instanceName, fmi2OK, "", "Freeing instance\n");
 
     if (model->S != NULL) {
-        if (ssGetUserData(model->S) != NULL ) {
-            if (SFCN_FMI_NBR_PARAMS > 0) {
-                /* Free dynamically allocated parameters for this instance */
-                // TODO: remove?
+        // TODO: remove?
+//        if (ssGetUserData(model->S) != NULL ) {
+//            if (SFCN_FMI_NBR_PARAMS > 0) {
+//                /* Free dynamically allocated parameters for this instance */
 //                paramP = sfcn_fmi_getParametersP_(model->S);
 //                free(paramP);
-            }
-        }
+//            }
+//        }
         /* Call mdlTerminate here, since that clears S-function Userdata */
         sfcnTerminate(model->S);
     }
@@ -628,13 +628,13 @@ void ResetModel(Model* model) {
     rt_DestroyIntegrationData(model->S);
     rt_CreateIntegrationData(model->S);
     setSampleStartValues(model);
-    if (ssGetUserData(model->S) != NULL ) {
-        if (SFCN_FMI_NBR_PARAMS > 0) {
-            // TODO: remove?
+    // TODO: remove?
+//    if (ssGetUserData(model->S) != NULL ) {
+//        if (SFCN_FMI_NBR_PARAMS > 0) {
 //            paramP = sfcn_fmi_getParametersP_(model->S);
 //            free(paramP);
-        }
-    }
+//        }
+//    }
     sfcnTerminate(model->S);
     if (ssGetmdlStart(model->S) != NULL) {
         sfcnStart(model->S);

@@ -47,10 +47,6 @@
 /* Model sizes */
 #define SFCN_FMI_ZC_LENGTH %<ZCVectorlength>
 #define SFCN_FMI_NBR_INPUTS %<nbrInputsScalar>
-#define SFCN_FMI_NBR_OUTPUTS %<nbrOutputsScalar>
-#define SFCN_FMI_NBR_PARAMS %<nbrParamsScalar>
-#define SFCN_FMI_NBR_BLOCKIO %<nbrBlockIOScalar>
-#define SFCN_FMI_NBR_DWORK %<nbrDWorkScalar>
 
 /* Model identifier */
 #define SFCN_FMI_MODEL_IDENTIFIER "%<OrigName>_sf"

@@ -708,26 +708,27 @@ fmi2Status fmi2SetRealInputDerivatives(fmi2Component c, const fmi2ValueReference
 
 fmi2Status fmi2GetRealOutputDerivatives(fmi2Component c, const fmi2ValueReference vr[], size_t nvr, const fmi2Integer order[], fmi2Real value[])
 {
-	Model* model = (Model*) c;
-	size_t i;
-
-	if (model->status <= modelInitializationMode) {
-        logger(model, model->instanceName, fmi2Warning, "", "fmi2GetRealOutputDerivatives: Slave is not initialized\n");
-		return fmi2Warning;
-	}
-	if (nvr == 0 || nvr > SFCN_FMI_NBR_OUTPUTS) {
-		logger(model, model->instanceName, fmi2Warning, "", "fmi2GetRealOutputDerivatives: Invalid nvr = %d (number of outputs = %d)\n", nvr, SFCN_FMI_NBR_OUTPUTS);
-		return fmi2Warning;
-	}
-	for (i = 0; i < nvr; i++) {
-		if (order[i] > 0) {
-			value[i] = 0.0;
-		} else {
-			logger(model, model->instanceName, fmi2Warning, "", "fmi2GetRealOutputDerivatives: Derivative order 0 is not allowed\n");
-			return fmi2Warning;
-		}
-	}
-	return fmi2OK;
+    return fmi2Error;
+//	Model* model = (Model*) c;
+//	size_t i;
+//
+//	if (model->status <= modelInitializationMode) {
+//        logger(model, model->instanceName, fmi2Warning, "", "fmi2GetRealOutputDerivatives: Slave is not initialized\n");
+//		return fmi2Warning;
+//	}
+//	if (nvr == 0 || nvr > SFCN_FMI_NBR_OUTPUTS) {
+//		logger(model, model->instanceName, fmi2Warning, "", "fmi2GetRealOutputDerivatives: Invalid nvr = %d (number of outputs = %d)\n", nvr, SFCN_FMI_NBR_OUTPUTS);
+//		return fmi2Warning;
+//	}
+//	for (i = 0; i < nvr; i++) {
+//		if (order[i] > 0) {
+//			value[i] = 0.0;
+//		} else {
+//			logger(model, model->instanceName, fmi2Warning, "", "fmi2GetRealOutputDerivatives: Derivative order 0 is not allowed\n");
+//			return fmi2Warning;
+//		}
+//	}
+//	return fmi2OK;
 }
 
 static void extrapolateInputs(Model* model, fmi2Real t)
