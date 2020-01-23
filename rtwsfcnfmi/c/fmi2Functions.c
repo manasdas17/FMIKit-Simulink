@@ -271,7 +271,32 @@ fmi2Status fmi2Reset(fmi2Component c)
 }
 
 fmi2Status fmi2SetReal(fmi2Component c, const fmi2ValueReference vr[], size_t nvr, const fmi2Real value[]) {
-    return fmi2Error;
+
+    for (size_t i = 0; i < nvr; i++) {
+
+        if (vr[i] > N_MODEL_VARIABLES) {
+            return fmi2Error;
+        }
+
+        ModelVariable *mv = &s_modelVariables[vr[i] - 1];
+
+        real_T *p;
+        
+        switch (mv->dtypeID) {
+            case SS_DOUBLE: {
+            p = (real_T *)mv->address;
+            *((real_T *)mv->address) = value[i];
+            }
+            break;
+        case SS_SINGLE:
+            *((real32_T *)mv->address) = value[i];
+            break;
+        default:
+            return fmi2Error;
+        }
+    }
+
+    return fmi2OK;
 }
 
 fmi2Status fmi2SetInteger(fmi2Component c, const fmi2ValueReference vr[], size_t nvr, const fmi2Integer value[]) {
