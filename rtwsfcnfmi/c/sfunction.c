@@ -794,122 +794,122 @@ static int LoadMEXAndDependencies(Model *model) {
 /* Dynamic loading of MATLAB MEX files for S-function blocks */
 static int LoadMEXAndDependencies(Model *model)
 {
-#if defined(_MSC_VER)
-    HINSTANCE hInst;
-    HMODULE hMySelf=0;
-#else
-    Dl_info dli;
-    struct stat sb;
-    void* hInst = NULL;
-#endif
-    int i;
-    char fmuPath[1024];
-    char*last;
-    char*mexDir;
-    char mexFile[1024];
-
-#if defined(_MSC_VER)
-    /* Setting MATLAB bin directory and loading MATLAB dependencies.
-        Not done on Linux, there the MATLAB bin needs to be set with LD_LIBRARY_PATH */
-    if ( (getenv("SFCN_FMI_MATLAB_BIN") != NULL) && (_SFCN_FMI_MATLAB_BIN == NULL) ) {
-        UserData *userData = (UserData *)model->userData;
-        _SFCN_FMI_MATLAB_BIN = strDup(&(userData->functions), getenv("SFCN_FMI_MATLAB_BIN"));
-    }
-    if (_SFCN_FMI_MATLAB_BIN == NULL) {
-        SetDllDirectory(SFCN_FMI_MATLAB_BIN);
-        logger(model, model->instanceName, fmi2OK, "", "Setting DLL directory for MATLAB dependencies: %s", SFCN_FMI_MATLAB_BIN);
-        logger(model, model->instanceName, fmi2OK, "", "The environment variable SFCN_FMI_MATLAB_BIN can be used to override this path.");
-    } else {
-        SetDllDirectory(_SFCN_FMI_MATLAB_BIN);
-        logger(model, model->instanceName, fmi2OK, "", "Setting DLL directory for MATLAB dependencies: %s", _SFCN_FMI_MATLAB_BIN);
-        logger(model, model->instanceName, fmi2OK, "", "Environment variable SFCN_FMI_MATLAB_BIN was used to override default path.");
-    }
-    logger(model, model->instanceName, fmi2OK, "", "Loading from MATLAB bin...");
-    if (hInst=LoadLibraryA("libmx.dll")) {
-        logger(model, model->instanceName, fmi2OK, "", "...libmx.dll");
-    } else  {
-        logger(model, model->instanceName, fmi2Error, "", "Failed to load binary libmx.dll\n");
-        return 0;
-    }
-    if (hInst=LoadLibraryA("libmex.dll")) {
-        logger(model, model->instanceName, fmi2OK, "", "...libmex.dll");
-    } else  {
-        logger(model, model->instanceName, fmi2Error, "", "Failed to load binary libmex.dll\n");
-        return 0;
-    }
-    if (hInst=LoadLibraryA("libmat.dll")) {
-        logger(model, model->instanceName, fmi2OK, "", "...libmat.dll");
-    } else  {
-        logger(model, model->instanceName, fmi2Error, "", "Failed to load binary libmat.dll\n");
-        return 0;
-    }
-    if (hInst=LoadLibraryA("libfixedpoint.dll")) {
-        logger(model, model->instanceName, fmi2OK, "", "...libfixedpoint.dll");
-    } else  {
-        logger(model, model->instanceName, fmi2Error, "", "Failed to load binary libfixedpoint.dll\n");
-        return 0;
-    }
-    if (hInst=LoadLibraryA("libut.dll")) {
-        logger(model, model->instanceName, fmi2OK, "", "...libut.dll");
-    } else  {
-        logger(model, model->instanceName, fmi2Error, "", "Failed to load binary libut.dll\n");
-        return 0;
-    }
-    hMySelf=GetModuleHandleA(SFCN_FMI_MODEL_IDENTIFIER);
-    if (GetModuleFileNameA(hMySelf, fmuPath, sizeof(fmuPath)/sizeof(*fmuPath))==0) {
-#else
-    if (dladdr(__builtin_return_address(0), &dli) != 0 && dli.dli_fname != NULL) {
-        strcpy(fmuPath, dli.dli_fname);
-    } else {
-#endif
-        logger(model, model->instanceName, fmi2Fatal, "", "Failed to retrieve module file name for %s\n", SFCN_FMI_MODEL_IDENTIFIER);
-        return 0;
-    }
-    fmuPath[sizeof(fmuPath)/sizeof(*fmuPath)-1]=0; /* Make sure it is NUL-terminated */
-    last=strrchr(fmuPath,'\\');
-    if (last==0) last=strrchr(fmuPath,'/');
-    if (last) {
-        last[0]=0;
-        last=strrchr(fmuPath,'\\');
-        if (last==0) last=strrchr(fmuPath,'/');
-        if (last) {
-            last[0]=0;
-            last=strrchr(fmuPath,'\\');
-            if (last==0) last=strrchr(fmuPath,'/');
-        }
-    }
-    if (last) last[1]=0;
-#if defined(_MSC_VER)
-    mexDir = strcat(fmuPath,"resources\\SFunctions\\");
-#else
-    mexDir = strcat(fmuPath,"resources/SFunctions/");
-#endif
-    for (i=0; i<SFCN_FMI_NBR_MEX; i++) {
-        if (i==0) {
-            logger(model, model->instanceName, fmi2OK, "", "Loading S-function MEX files from FMU resources...");
-#if defined(_MSC_VER)
-            SetDllDirectory(mexDir); /* To handle dependencies to other DLLs in the same folder */
-#endif
-        }
-        strncpy(mexFile, mexDir, strlen(mexDir)+1);
-        strcat(mexFile, SFCN_FMI_MEX_NAMES[i]);
-#if defined(_MSC_VER)
-        if (hInst=LoadLibraryA(mexFile)) {
-#else
-        if (stat(mexFile, &sb) == 0) {
-            hInst = dlopen(mexFile, RTLD_NOW);
-            if (hInst != NULL) {
-#endif
-                model->mexHandles[i]=hInst;
-                logger(model, model->instanceName, fmi2OK, "", "...%s", SFCN_FMI_MEX_NAMES[i]);
-            } else  {
-                logger(model, model->instanceName, fmi2Error, "", "Failed to load binary MEX file: %s", SFCN_FMI_MEX_NAMES[i]);
-                return 0;
-            }
-#if !defined(_MSC_VER)
-        }
-#endif
-    }
+//#if defined(_MSC_VER)
+//    HINSTANCE hInst;
+//    HMODULE hMySelf=0;
+//#else
+//    Dl_info dli;
+//    struct stat sb;
+//    void* hInst = NULL;
+//#endif
+//    int i;
+//    char fmuPath[1024];
+//    char*last;
+//    char*mexDir;
+//    char mexFile[1024];
+//
+//#if defined(_MSC_VER)
+//    /* Setting MATLAB bin directory and loading MATLAB dependencies.
+//        Not done on Linux, there the MATLAB bin needs to be set with LD_LIBRARY_PATH */
+//    if ( (getenv("SFCN_FMI_MATLAB_BIN") != NULL) && (_SFCN_FMI_MATLAB_BIN == NULL) ) {
+//        UserData *userData = (UserData *)model->userData;
+//        _SFCN_FMI_MATLAB_BIN = strDup(&(userData->functions), getenv("SFCN_FMI_MATLAB_BIN"));
+//    }
+//    if (_SFCN_FMI_MATLAB_BIN == NULL) {
+//        SetDllDirectory(SFCN_FMI_MATLAB_BIN);
+//        logger(model, model->instanceName, fmi2OK, "", "Setting DLL directory for MATLAB dependencies: %s", SFCN_FMI_MATLAB_BIN);
+//        logger(model, model->instanceName, fmi2OK, "", "The environment variable SFCN_FMI_MATLAB_BIN can be used to override this path.");
+//    } else {
+//        SetDllDirectory(_SFCN_FMI_MATLAB_BIN);
+//        logger(model, model->instanceName, fmi2OK, "", "Setting DLL directory for MATLAB dependencies: %s", _SFCN_FMI_MATLAB_BIN);
+//        logger(model, model->instanceName, fmi2OK, "", "Environment variable SFCN_FMI_MATLAB_BIN was used to override default path.");
+//    }
+//    logger(model, model->instanceName, fmi2OK, "", "Loading from MATLAB bin...");
+//    if (hInst=LoadLibraryA("libmx.dll")) {
+//        logger(model, model->instanceName, fmi2OK, "", "...libmx.dll");
+//    } else  {
+//        logger(model, model->instanceName, fmi2Error, "", "Failed to load binary libmx.dll\n");
+//        return 0;
+//    }
+//    if (hInst=LoadLibraryA("libmex.dll")) {
+//        logger(model, model->instanceName, fmi2OK, "", "...libmex.dll");
+//    } else  {
+//        logger(model, model->instanceName, fmi2Error, "", "Failed to load binary libmex.dll\n");
+//        return 0;
+//    }
+//    if (hInst=LoadLibraryA("libmat.dll")) {
+//        logger(model, model->instanceName, fmi2OK, "", "...libmat.dll");
+//    } else  {
+//        logger(model, model->instanceName, fmi2Error, "", "Failed to load binary libmat.dll\n");
+//        return 0;
+//    }
+//    if (hInst=LoadLibraryA("libfixedpoint.dll")) {
+//        logger(model, model->instanceName, fmi2OK, "", "...libfixedpoint.dll");
+//    } else  {
+//        logger(model, model->instanceName, fmi2Error, "", "Failed to load binary libfixedpoint.dll\n");
+//        return 0;
+//    }
+//    if (hInst=LoadLibraryA("libut.dll")) {
+//        logger(model, model->instanceName, fmi2OK, "", "...libut.dll");
+//    } else  {
+//        logger(model, model->instanceName, fmi2Error, "", "Failed to load binary libut.dll\n");
+//        return 0;
+//    }
+//    hMySelf=GetModuleHandleA(SFCN_FMI_MODEL_IDENTIFIER);
+//    if (GetModuleFileNameA(hMySelf, fmuPath, sizeof(fmuPath)/sizeof(*fmuPath))==0) {
+//#else
+//    if (dladdr(__builtin_return_address(0), &dli) != 0 && dli.dli_fname != NULL) {
+//        strcpy(fmuPath, dli.dli_fname);
+//    } else {
+//#endif
+//        logger(model, model->instanceName, fmi2Fatal, "", "Failed to retrieve module file name for %s\n", SFCN_FMI_MODEL_IDENTIFIER);
+//        return 0;
+//    }
+//    fmuPath[sizeof(fmuPath)/sizeof(*fmuPath)-1]=0; /* Make sure it is NUL-terminated */
+//    last=strrchr(fmuPath,'\\');
+//    if (last==0) last=strrchr(fmuPath,'/');
+//    if (last) {
+//        last[0]=0;
+//        last=strrchr(fmuPath,'\\');
+//        if (last==0) last=strrchr(fmuPath,'/');
+//        if (last) {
+//            last[0]=0;
+//            last=strrchr(fmuPath,'\\');
+//            if (last==0) last=strrchr(fmuPath,'/');
+//        }
+//    }
+//    if (last) last[1]=0;
+//#if defined(_MSC_VER)
+//    mexDir = strcat(fmuPath,"resources\\SFunctions\\");
+//#else
+//    mexDir = strcat(fmuPath,"resources/SFunctions/");
+//#endif
+//    for (i=0; i<SFCN_FMI_NBR_MEX; i++) {
+//        if (i==0) {
+//            logger(model, model->instanceName, fmi2OK, "", "Loading S-function MEX files from FMU resources...");
+//#if defined(_MSC_VER)
+//            SetDllDirectory(mexDir); /* To handle dependencies to other DLLs in the same folder */
+//#endif
+//        }
+//        strncpy(mexFile, mexDir, strlen(mexDir)+1);
+//        strcat(mexFile, SFCN_FMI_MEX_NAMES[i]);
+//#if defined(_MSC_VER)
+//        if (hInst=LoadLibraryA(mexFile)) {
+//#else
+//        if (stat(mexFile, &sb) == 0) {
+//            hInst = dlopen(mexFile, RTLD_NOW);
+//            if (hInst != NULL) {
+//#endif
+//                model->mexHandles[i]=hInst;
+//                logger(model, model->instanceName, fmi2OK, "", "...%s", SFCN_FMI_MEX_NAMES[i]);
+//            } else  {
+//                logger(model, model->instanceName, fmi2Error, "", "Failed to load binary MEX file: %s", SFCN_FMI_MEX_NAMES[i]);
+//                return 0;
+//            }
+//#if !defined(_MSC_VER)
+//        }
+//#endif
+//    }
     return 1;
 }
 
@@ -917,55 +917,55 @@ typedef void (*mexFunctionPtr) (int_T nlhs, mxArray *plhs[], int_T nrhs, const m
 
 static int sfcn_fmi_load_mex(int nlhs, mxArray *plhs[], int nrhs, mxArray *prhs[], const char *functionName, const char* mexext)
 {
-    int i;
-    char mexName[256];
-    mexFunctionPtr mexFunc = NULL;
-#if defined(_MSC_VER)
-    HINSTANCE hInst = 0;
-#else
-    void* hInst = 0;
-#endif
-
-    sprintf(mexName, "%s.%s", functionName, mexext);
-    /* Find handle index */
-    for (i=0; i<SFCN_FMI_NBR_MEX; i++) {
-        if (strcmp(mexName, SFCN_FMI_MEX_NAMES[i]) == 0) {
-            break;
-        }
-    }
-    if (i<SFCN_FMI_NBR_MEX) {
-        hInst = currentModel->mexHandles[i];
-    }
-    if (hInst) {
-#if defined(_MSC_VER)
-        mexFunc = (mexFunctionPtr)GetProcAddress(hInst,"mexFunction");
-        if (mexFunc == NULL) {
-            mexFunc = (mexFunctionPtr)GetProcAddress(hInst,"_mexFunction");
-        }
-#else
-        mexFunc = (mexFunctionPtr) dlsym(hInst,"mexFunction");
-        if (mexFunc == NULL) {
-            mexFunc = (mexFunctionPtr) dlsym(hInst,"_mexFunction"); /* probably not needed here, only LCC generates entrypoint _mexFunction */
-        }
-#endif
-        if (mexFunc) {
-            logger(currentModel, currentModel->instanceName, fmi2OK, "", "Calling MEX S-function: %s", mexName);
-            mexFunc(nlhs, plhs, nrhs, (const mxArray**)prhs);
-            if (currentModel->S != NULL) {
-                if (ssGetErrorStatus(currentModel->S) != NULL) {
-                    logger(currentModel, currentModel->instanceName, fmi2Fatal, "",
-                        "Error in S-function (mdlInitializeSizes): %s\n", ssGetErrorStatus(currentModel->S));
-                    return 1;
-                }
-            }
-        } else {
-            logger(currentModel, currentModel->instanceName, fmi2Fatal, "", "Failed to retrieve 'mexFunction' entry point from %s\n", mexName);
-            return 1;
-        }
-    } else  {
-        logger(currentModel, currentModel->instanceName, fmi2Fatal, "", "Failed to retrieve handle to call binary MEX file: %s", mexName);
-        return 1;
-    }
+//    int i;
+//    char mexName[256];
+//    mexFunctionPtr mexFunc = NULL;
+//#if defined(_MSC_VER)
+//    HINSTANCE hInst = 0;
+//#else
+//    void* hInst = 0;
+//#endif
+//
+//    sprintf(mexName, "%s.%s", functionName, mexext);
+//    /* Find handle index */
+//    for (i=0; i<SFCN_FMI_NBR_MEX; i++) {
+//        if (strcmp(mexName, SFCN_FMI_MEX_NAMES[i]) == 0) {
+//            break;
+//        }
+//    }
+//    if (i<SFCN_FMI_NBR_MEX) {
+//        hInst = currentModel->mexHandles[i];
+//    }
+//    if (hInst) {
+//#if defined(_MSC_VER)
+//        mexFunc = (mexFunctionPtr)GetProcAddress(hInst,"mexFunction");
+//        if (mexFunc == NULL) {
+//            mexFunc = (mexFunctionPtr)GetProcAddress(hInst,"_mexFunction");
+//        }
+//#else
+//        mexFunc = (mexFunctionPtr) dlsym(hInst,"mexFunction");
+//        if (mexFunc == NULL) {
+//            mexFunc = (mexFunctionPtr) dlsym(hInst,"_mexFunction"); /* probably not needed here, only LCC generates entrypoint _mexFunction */
+//        }
+//#endif
+//        if (mexFunc) {
+//            logger(currentModel, currentModel->instanceName, fmi2OK, "", "Calling MEX S-function: %s", mexName);
+//            mexFunc(nlhs, plhs, nrhs, (const mxArray**)prhs);
+//            if (currentModel->S != NULL) {
+//                if (ssGetErrorStatus(currentModel->S) != NULL) {
+//                    logger(currentModel, currentModel->instanceName, fmi2Fatal, "",
+//                        "Error in S-function (mdlInitializeSizes): %s\n", ssGetErrorStatus(currentModel->S));
+//                    return 1;
+//                }
+//            }
+//        } else {
+//            logger(currentModel, currentModel->instanceName, fmi2Fatal, "", "Failed to retrieve 'mexFunction' entry point from %s\n", mexName);
+//            return 1;
+//        }
+//    } else  {
+//        logger(currentModel, currentModel->instanceName, fmi2Fatal, "", "Failed to retrieve handle to call binary MEX file: %s", mexName);
+//        return 1;
+//    }
 
     return 0;
 }
