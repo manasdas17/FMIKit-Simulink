@@ -1,10 +1,10 @@
 cmake_minimum_required (VERSION 3.2)
 
-set(MODEL_NAME "BouncingBall" CACHE STRING "Model name")
+set(MODEL_NAME "" CACHE STRING "Model name")
 set(SOLVER "ode1" CACHE STRING "Solver")
 set_property(CACHE SOLVER PROPERTY STRINGS ode1 ode2 ode3 ode4 ode5 ode8 ode14x)
 set(MATLAB_ROOT "C:/Program Files/MATLAB/R2019a" CACHE STRING "MATLAB install directory")
-set(RTW_DIR "E:/Development/FMIKit-Simulink/BouncingBall_sfcn_rtw_fmi" CACHE STRING "RTW generated model directory")
+set(RTW_DIR "" CACHE STRING "RTW generated model directory")
 set(CUSTOM_SOURCE "" CACHE STRING "Additional source files")
 set(FMU_BUILD_DIR "${RTW_DIR}/FMUArchive")
 
