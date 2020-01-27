@@ -358,7 +358,7 @@ Model *InstantiateModel(const char* instanceName, logMessageCallback logMessage,
 	/* Allocate model vectors */
 	model->oldZC = (real_T*)calloc(SFCN_FMI_ZC_LENGTH + 1, sizeof(real_T));
 	model->numSampleHits = (int_T*)calloc(model->S->sizes.numSampleTimes + 1, sizeof(int_T));
-	model->inputDerivatives = (real_T*)calloc(SFCN_FMI_NBR_INPUTS + 1, sizeof(real_T));
+//	model->inputDerivatives = (real_T*)calloc(SFCN_FMI_NBR_INPUTS + 1, sizeof(real_T));
 
 	/* Check Simstruct error status and stop requested */
 	if ((ssGetErrorStatus(model->S) != NULL) || (ssGetStopRequested(model->S) != 0)) {

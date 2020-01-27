@@ -46,10 +46,10 @@
 
 /* Model sizes */
 #define SFCN_FMI_ZC_LENGTH %<ZCVectorlength>
-#define SFCN_FMI_NBR_INPUTS %<nbrInputsScalar>
+%%#define SFCN_FMI_NBR_INPUTS %<nbrInputsScalar>
 
 /* Model identifier */
-#define SFCN_FMI_MODEL_IDENTIFIER "%<OrigName>_sf"
+#define SFCN_FMI_MODEL_IDENTIFIER "%<OrigName>"
 
 /* Loading of MEX binaries, path to MATLAB bin */
 #define SFCN_FMI_LOAD_MEX %<LoadBinaryMEX>
@@ -226,6 +226,8 @@ void sfcn_fmi_registerRTModelCallbacks_(SimStruct*S)
 /* Copy parameter values to S-function mxArrays */
 void sfcn_fmi_copyToSFcnParams_(SimStruct* S)
 {
+%% TODO: get nbrParamsScalar from XML
+%assign nbrParamsScalar = 0
 %if nbrParamsScalar > 0
   %if ISFIELD(::CompiledModel, "NumSFunctionNameCounts") && LoadBinaryMEX
     %if ( (nbrGlobalTunable == 0) || (isRelBeforeR2015b == 0) )

@@ -690,43 +690,43 @@ fmi2Status fmi2GetNominalsOfContinuousStates(fmi2Component c, fmi2Real x_nominal
 
 fmi2Status fmi2SetRealInputDerivatives(fmi2Component c, const fmi2ValueReference vr[], size_t nvr, const fmi2Integer order[], const fmi2Real value[])
 {
-	Model* model = (Model*) c;
-	size_t i;
-
-	if (model->status <= modelInitializationMode) {
-		logger(model, model->instanceName, fmi2Warning, "", "fmi2SetRealInputDerivatives: Slave is not initialized\n");
-		return fmi2Warning;
-	}
-	if (nvr == 0 || nvr > SFCN_FMI_NBR_INPUTS) {
-		logger(model, model->instanceName, fmi2Warning, "", "fmi2SetRealInputDerivatives: Invalid nvr = %d (number of inputs = %d)\n", nvr, SFCN_FMI_NBR_INPUTS);
-		return fmi2Warning;
-	}
-	for (i = 0; i < nvr; i++) {
-		const fmi2ValueReference r = vr[i];
-		int index    = SFCN_FMI_INDEX(r);
-		int dataType = SFCN_FMI_DATATYPE(r);
-
-		if (order[i] == 1) {
-			switch (SFCN_FMI_CATEGORY(r)) {
-			case SFCN_FMI_INPUT:
-				if (dataType == SS_DOUBLE) {
-					/* Non-zero derivatives only for double-valued real inputs */
-					model->inputDerivatives[index] = value[i];
-#if defined(SFCN_FMI_VERBOSITY)
-					logger(model, model->instanceName, fmi2OK, "", "fmi2SetRealInputDerivatives: Setting derivative at input #%d to %.16f at time = %.16f.\n", i, value[i], model->time);
-#endif
-				}
-				break;
-			default:
-				logger(model, model->instanceName, fmi2Warning, "", "fmi2SetRealInputDerivatives: variable is not input");
-				return fmi2Warning;
-			}
-		} else {
-			logger(model, model->instanceName, fmi2Warning, "", "fmi2SetRealInputDerivatives: derivative order %d is not supported", order[i]);
-			return fmi2Warning;
-		}
-	}
-	model->derivativeTime = model->time;
+//	Model* model = (Model*) c;
+//	size_t i;
+//
+//	if (model->status <= modelInitializationMode) {
+//		logger(model, model->instanceName, fmi2Warning, "", "fmi2SetRealInputDerivatives: Slave is not initialized\n");
+//		return fmi2Warning;
+//	}
+//	if (nvr == 0 || nvr > SFCN_FMI_NBR_INPUTS) {
+//		logger(model, model->instanceName, fmi2Warning, "", "fmi2SetRealInputDerivatives: Invalid nvr = %d (number of inputs = %d)\n", nvr, SFCN_FMI_NBR_INPUTS);
+//		return fmi2Warning;
+//	}
+//	for (i = 0; i < nvr; i++) {
+//		const fmi2ValueReference r = vr[i];
+//		int index    = SFCN_FMI_INDEX(r);
+//		int dataType = SFCN_FMI_DATATYPE(r);
+//
+//		if (order[i] == 1) {
+//			switch (SFCN_FMI_CATEGORY(r)) {
+//			case SFCN_FMI_INPUT:
+//				if (dataType == SS_DOUBLE) {
+//					/* Non-zero derivatives only for double-valued real inputs */
+//					model->inputDerivatives[index] = value[i];
+//#if defined(SFCN_FMI_VERBOSITY)
+//					logger(model, model->instanceName, fmi2OK, "", "fmi2SetRealInputDerivatives: Setting derivative at input #%d to %.16f at time = %.16f.\n", i, value[i], model->time);
+//#endif
+//				}
+//				break;
+//			default:
+//				logger(model, model->instanceName, fmi2Warning, "", "fmi2SetRealInputDerivatives: variable is not input");
+//				return fmi2Warning;
+//			}
+//		} else {
+//			logger(model, model->instanceName, fmi2Warning, "", "fmi2SetRealInputDerivatives: derivative order %d is not supported", order[i]);
+//			return fmi2Warning;
+//		}
+//	}
+//	model->derivativeTime = model->time;
 
 	return fmi2OK;
 }
