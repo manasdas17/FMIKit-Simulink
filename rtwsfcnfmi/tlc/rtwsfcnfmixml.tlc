@@ -252,11 +252,11 @@ static void initializeModelVariables(SimStruct* S, ModelVariable modelVariables[
     modelVariables[%<vr>].address = &(((%<GlobalScope.tXdotType> *)ssGetdX(S))->%<identifier>%<dataSubs>);
         %selectfile xmlfile
     <!-- width: %<width> -->
-    <ScalarVariable name="%<identifier>%<varSubs>" valueReference="%<vr>" initial="calculated">
+    <ScalarVariable name="ContStates.%<identifier>%<varSubs>" valueReference="%<vr>" initial="calculated">
       <Real reinit="true"/>
     </ScalarVariable>
         %assign vr = vr + 1
-    <ScalarVariable name="der(%<identifier>%<varSubs>)" valueReference="%<vr>">
+    <ScalarVariable name="der(ContStates.%<identifier>%<varSubs>)" valueReference="%<vr>">
       <Real derivative="%<vr-1>"/>
     </ScalarVariable>
         %assign derivativeIndices = derivativeIndices + vr
