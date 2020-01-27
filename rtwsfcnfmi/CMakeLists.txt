@@ -72,28 +72,28 @@ if (EXISTS "${RTW_DIR}/rt_zcfcn.c")
   set (MODEL_SOURCES ${MODEL_SOURCES} "${RTW_DIR}/rt_zcfcn.c")
 endif ()
 
-add_library(${MODEL_NAME}_sf SHARED
+add_library(${MODEL_NAME} SHARED
   ${MODEL_SOURCES}
   ${CUSTOM_SOURCE}
 )
 
-target_include_directories(${MODEL_NAME}_sf PRIVATE
+target_include_directories(${MODEL_NAME} PRIVATE
   ../include
   c
 )
 
 if (WIN32)
-  target_link_libraries(${MODEL_NAME}_sf
+  target_link_libraries(${MODEL_NAME}
     "${MATLAB_ROOT}/extern/lib/win64/microsoft/libmx.lib"
     "${MATLAB_ROOT}/extern/lib/win64/microsoft/libmex.lib"
     "${MATLAB_ROOT}/extern/lib/win64/microsoft/sf_runtime.lib"
     ${SOLVER}
   )
 elseif (APPLE)
-  target_link_libraries(${MODEL_NAME}_sf ${SOLVER})
+  target_link_libraries(${MODEL_NAME} ${SOLVER})
 endif ()
 
-target_compile_definitions(${MODEL_NAME}_sf PRIVATE
+target_compile_definitions(${MODEL_NAME} PRIVATE
 	_CRT_SECURE_NO_WARNINGS
 	FIPXT_SHARED_MODULE
 	rt_matrx_h
@@ -102,9 +102,9 @@ target_compile_definitions(${MODEL_NAME}_sf PRIVATE
 )
 
 # don't add the "lib" prefix to the shared library
-set_target_properties(${MODEL_NAME}_sf PROPERTIES PREFIX "")
+set_target_properties(${MODEL_NAME} PROPERTIES PREFIX "")
 
-target_include_directories(${MODEL_NAME}_sf PRIVATE
+target_include_directories(${MODEL_NAME} PRIVATE
   "${CMAKE_CURRENT_SOURCE_DIR}"
   "${RTW_DIR}"
   "${MATLAB_ROOT}/extern/include"
@@ -114,20 +114,20 @@ target_include_directories(${MODEL_NAME}_sf PRIVATE
 )
 
 # modelDescription.xml
-add_custom_command(TARGET ${MODEL_NAME}_sf POST_BUILD COMMAND ${CMAKE_COMMAND} -E copy
+add_custom_command(TARGET ${MODEL_NAME} POST_BUILD COMMAND ${CMAKE_COMMAND} -E copy
   ${RTW_DIR}/modelDescription.xml
   ${FMU_BUILD_DIR}/modelDescription.xml
 )
 
 # shared library
-add_custom_command(TARGET ${MODEL_NAME}_sf POST_BUILD COMMAND ${CMAKE_COMMAND} -E copy
-  $<TARGET_FILE:${MODEL_NAME}_sf>
-  ${FMU_BUILD_DIR}/binaries/${FMI_PLATFORM}/$<TARGET_FILE_NAME:${MODEL_NAME}_sf>
+add_custom_command(TARGET ${MODEL_NAME} POST_BUILD COMMAND ${CMAKE_COMMAND} -E copy
+  $<TARGET_FILE:${MODEL_NAME}>
+  ${FMU_BUILD_DIR}/binaries/${FMI_PLATFORM}/$<TARGET_FILE_NAME:${MODEL_NAME}>
 )
 
 # create ZIP archive
-add_custom_command(TARGET ${MODEL_NAME}_sf POST_BUILD
-  COMMAND ${CMAKE_COMMAND} -E tar "cfv" ${RTW_DIR}/${MODEL_NAME}_sf.fmu --format=zip
+add_custom_command(TARGET ${MODEL_NAME} POST_BUILD
+  COMMAND ${CMAKE_COMMAND} -E tar "cfv" ${RTW_DIR}/${MODEL_NAME}.fmu --format=zip
   modelDescription.xml
   binaries
   WORKING_DIRECTORY ${FMU_BUILD_DIR}

@@ -31,9 +31,9 @@
   numberOfEventIndicators="%<ZCVectorlength>">
   
   %if FMIType == "CoSimulation"
-  <CoSimulation modelIdentifier="%<OrigName>_sf" canHandleVariableCommunicationStepSize="true" canInterpolateInputs="true"/>
+  <CoSimulation modelIdentifier="%<OrigName>" canHandleVariableCommunicationStepSize="true" canInterpolateInputs="true"/>
   %else
-  <ModelExchange modelIdentifier="%<OrigName>_sf"/>
+  <ModelExchange modelIdentifier="%<OrigName>"/>
   %endif
   %if ISFIELD(CompiledModel, "Units") && Units.NumUnits > 1
   
