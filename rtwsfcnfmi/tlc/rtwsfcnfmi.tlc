@@ -31,6 +31,7 @@
 %include "codegenentry.tlc"
 %include "sfcnfmilib.tlc"
 %assign GUID = FEVAL("makeGUID")
+%include "sfcnmdi2.tlc"
 %include "sfcnmei.tlc"
 
 %assign FMIVersion = "2"
