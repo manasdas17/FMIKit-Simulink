@@ -44,7 +44,7 @@ switch hookMethod
         assert(status == 0, 'Failed to build FMU');
         
         % copy the FMU to the working directory
-        copyfile([modelName '_sf.fmu'], '..');
+        copyfile([modelName '.fmu'], '..');
 end
 
 end
