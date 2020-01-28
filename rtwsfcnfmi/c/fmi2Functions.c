@@ -300,11 +300,62 @@ fmi2Status fmi2SetReal(fmi2Component c, const fmi2ValueReference vr[], size_t nv
 }
 
 fmi2Status fmi2SetInteger(fmi2Component c, const fmi2ValueReference vr[], size_t nvr, const fmi2Integer value[]) {
-    return fmi2Error;
+    
+    for (size_t i = 0; i < nvr; i++) {
+
+        if (vr[i] > N_MODEL_VARIABLES) {
+            return fmi2Error;
+        }
+
+        ModelVariable *mv = &s_modelVariables[vr[i] - 1];
+        
+        switch (mv->dtypeID) {
+            case SS_INT8:
+                *((int8_T *)mv->address) = value[i];
+                break;
+            case SS_UINT8:
+                *((uint8_T *)mv->address) = value[i];
+                break;
+            case SS_INT16:
+                *((int16_T *)mv->address) = value[i];
+                break;
+            case SS_UINT16:
+                *((uint16_T *)mv->address) = value[i];
+                break;
+            case SS_INT32:
+                *((int32_T *)mv->address) = value[i];
+                break;
+            case SS_UINT32:
+                *((uint32_T *)mv->address) = value[i];
+                break;
+            default:
+                return fmi2Error;
+        }
+    }
+
+    return fmi2OK;
 }
 
 fmi2Status fmi2SetBoolean(fmi2Component c, const fmi2ValueReference vr[], size_t nvr, const fmi2Boolean value[]) {
-    return fmi2Error;
+    
+    for (size_t i = 0; i < nvr; i++) {
+
+        if (vr[i] > N_MODEL_VARIABLES) {
+            return fmi2Error;
+        }
+
+        ModelVariable *mv = &s_modelVariables[vr[i] - 1];
+        
+        switch (mv->dtypeID) {
+            case SS_BOOLEAN:
+                *((boolean_T *)mv->address) = value[i];
+                break;
+            default:
+                return fmi2Error;
+        }
+    }
+
+    return fmi2OK;
 }
 
 fmi2Status fmi2SetString(fmi2Component c, const fmi2ValueReference vr[], size_t nvr, const fmi2String  value[]) {
@@ -337,7 +388,40 @@ fmi2Status fmi2GetReal(fmi2Component c, const fmi2ValueReference vr[], size_t nv
 }
 
 fmi2Status fmi2GetInteger(fmi2Component c, const fmi2ValueReference vr[], size_t nvr, fmi2Integer value[]) {
-    return fmi2Error;
+    
+    for (size_t i = 0; i < nvr; i++) {
+        
+        if (vr[i] > N_MODEL_VARIABLES) {
+            continue;
+        }
+        
+        ModelVariable *mv = &s_modelVariables[vr[i] - 1];
+        
+        switch (mv->dtypeID) {
+            case SS_INT8:
+                value[i] = *((int8_T *)mv->address);
+                break;
+            case SS_UINT8:
+                value[i] = *((uint8_T *)mv->address);
+                break;
+            case SS_INT16:
+                value[i] = *((int16_T *)mv->address);
+                break;
+            case SS_UINT16:
+                value[i] = *((uint16_T *)mv->address);
+                break;
+            case SS_INT32:
+                value[i] = *((int32_T *)mv->address);
+                break;
+            case SS_UINT32:
+                value[i] = *((uint32_T *)mv->address);
+                break;
+            default:
+                return fmi2Error;
+        }
+    }
+    
+    return fmi2OK;
 }
 
 fmi2Status fmi2GetBoolean(fmi2Component c, const fmi2ValueReference vr[], size_t nvr, fmi2Boolean value[]) {
