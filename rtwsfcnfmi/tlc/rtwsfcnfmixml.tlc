@@ -128,11 +128,12 @@ static void initializeModelVariables(SimStruct* S, ModelVariable modelVariables[
         %assign identifier   = varGroupName + "." + param.Identifier
         %assign variableName = varGroupName + "." + variableName
       %endif
+      %assign variableName = "Parameters." + variableName
       %assign dataName = "((%<GlobalScope.tParametersType> *)ssGetLocalDefaultParam(S))->%<identifier>"
       %if FMIVersion == "2"
-        %assign vr = VariableFMI2(param, identifier, dataName, vr, " causality=\"parameter\" variability=\"tunable\"", "")
+        %assign vr = VariableFMI2(param, variableName, dataName, vr, " causality=\"parameter\" variability=\"tunable\"", "")
       %else
-        %assign vr = VariableFMI3(param, identifier, dataName, vr, " causality=\"parameter\" variability=\"tunable\"", "")
+        %assign vr = VariableFMI3(param, variableName, dataName, vr, " causality=\"parameter\" variability=\"tunable\"", "")
       %endif
     %endforeach
   %endwith
@@ -145,7 +146,7 @@ static void initializeModelVariables(SimStruct* S, ModelVariable modelVariables[
     <!-- Inputs -->
       %foreach portid = NumExternalInputs
         %assign port         = ExternalInput[portid]
-        %assign variableName = port.Identifier
+        %assign variableName = "Inputs." + port.Identifier
         %assign dataTypeName = SLibGetRecordDataTypeName(port, "")
         %assign width        = LibGetRecordWidth(port)
         %assign dataName     = "*((%<dataTypeName> **)ssGetInputPortSignalPtrs(S, %<portid>))"
@@ -168,7 +169,7 @@ static void initializeModelVariables(SimStruct* S, ModelVariable modelVariables[
         %assign sysid        = port.Block[0]
         %assign blkid        = port.Block[1]
         %assign block        = System[sysid].Block[blkid]
-        %assign variableName = block.Identifier
+        %assign variableName = "Outputs." + block.Identifier
         %assign dataTypeName = SLibGetRecordDataTypeName(port, "")
         %assign width        = LibGetRecordWidth(port)
         %assign dataName     = "((%<dataTypeName> *)ssGetOutputPortSignal(S, %<portid>))"
@@ -206,7 +207,7 @@ static void initializeModelVariables(SimStruct* S, ModelVariable modelVariables[
         %if ISFIELD(blockoutput, "GrSrc") && blockoutput.GrSrc[1] != -1
           %assign varPath = LibGetFormattedBlockPath(SLibGrBlock(blockoutput.GrSrc))
           %assign varPath = FEVAL("grtfmi_block_path", varPath)
-          %assign variableName = "%<varPath>.%<variableName>"
+          %assign variableName = "BlockOutputs.%<varPath>.%<variableName>"
         %endif
         %assign varGroup = ::CompiledModel.VarGroups.VarGroup[blockoutput.VarGroupIdx[0]]
         %if varGroup.ParentVarGroupIdx == -1
@@ -252,11 +253,11 @@ static void initializeModelVariables(SimStruct* S, ModelVariable modelVariables[
     modelVariables[%<vr>].address = &(((%<GlobalScope.tXdotType> *)ssGetdX(S))->%<identifier>%<dataSubs>);
         %selectfile xmlfile
     <!-- width: %<width> -->
-    <ScalarVariable name="ContStates.%<identifier>%<varSubs>" valueReference="%<vr>" initial="calculated">
+    <ScalarVariable name="ContinuousStates.%<identifier>%<varSubs>" valueReference="%<vr>" initial="calculated">
       <Real reinit="true"/>
     </ScalarVariable>
         %assign vr = vr + 1
-    <ScalarVariable name="der(ContStates.%<identifier>%<varSubs>)" valueReference="%<vr>">
+    <ScalarVariable name="der(ContinuousStates.%<identifier>%<varSubs>)" valueReference="%<vr>">
       <Real derivative="%<vr-1>"/>
     </ScalarVariable>
         %assign derivativeIndices = derivativeIndices + vr
