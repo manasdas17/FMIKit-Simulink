@@ -11,7 +11,6 @@
 #include <math.h>
 
 #include "fmi.h"
-#include "sfcn_fmi_rel_conf.h"
 #include "sfcn_fmi.h"
 #include "sfunction.h"
 

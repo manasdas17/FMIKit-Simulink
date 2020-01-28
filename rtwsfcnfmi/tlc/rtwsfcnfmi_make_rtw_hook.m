@@ -15,7 +15,18 @@ switch hookMethod
         command = get_param(modelName, 'CMakeCommand');
         command = grtfmi_find_cmake(command);
         generator = get_param(modelName, 'CMakeGenerator');
-  
+        
+        % MATLAB version for conditional compilation
+        if verLessThan('matlab', '7.12')
+            matlab_version = '';  % do nothing
+        elseif verLessThan('matlab', '8.5')
+            matlab_version = 'MATLAB_R2011a_';  % R2011a - R2014b
+        elseif verLessThan('matlab', '9.3')
+            matlab_version = 'MATLAB_R2015a_';  % R2015a - R2017a
+        else
+            matlab_version = 'MATLAB_R2017b_';  % R2017b - R2018b
+        end
+        
         custom_source = get_param(gcs, 'CustomSource');
         custom_source = which(custom_source);
         
@@ -30,6 +41,7 @@ switch hookMethod
         fprintf(fid, 'SOLVER:STRING=%s\n', solver);
         fprintf(fid, 'RTW_DIR:STRING=%s\n', strrep(pwd, '\', '/'));
         fprintf(fid, 'MATLAB_ROOT:STRING=%s\n', strrep(matlabroot, '\', '/'));
+        fprintf(fid, 'MATLAB_VERSION:STRING=%s\n', matlab_version);
         fprintf(fid, 'CUSTOM_SOURCE:STRING=%s\n', custom_source);
         %fprintf(fid, 'COMPILER_OPTIMIZATION_LEVEL:STRING=%s\n', get_param(gcs, 'CMakeCompilerOptimizationLevel'));
         %fprintf(fid, 'COMPILER_OPTIMIZATION_FLAGS:STRING=%s\n', get_param(gcs, 'CMakeCompilerOptimizationFlags'));

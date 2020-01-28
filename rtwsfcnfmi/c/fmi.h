@@ -14,11 +14,6 @@
 #ifndef FMI__H
 #define FMI__H
 
-/*
- * Generated header to configure MATLAB release
-*/
-#include "sfcn_fmi_rel_conf.h"
-
 #include <simstruc.h>
 
 #undef SFCN_FMI_VERBOSITY /* Define to add debug logging */

@@ -3,7 +3,8 @@ cmake_minimum_required (VERSION 3.2)
 set(MODEL_NAME "" CACHE STRING "Model name")
 set(SOLVER "ode1" CACHE STRING "Solver")
 set_property(CACHE SOLVER PROPERTY STRINGS ode1 ode2 ode3 ode4 ode5 ode8 ode14x)
-set(MATLAB_ROOT "C:/Program Files/MATLAB/R2019a" CACHE STRING "MATLAB install directory")
+set(MATLAB_ROOT "C:/Program Files/MATLAB/R2019b" CACHE STRING "MATLAB install directory")
+set(MATLAB_VERSION "9.7" CACHE STRING "MATLAB version for conditional compilation")
 set(RTW_DIR "" CACHE STRING "RTW generated model directory")
 set(CUSTOM_SOURCE "" CACHE STRING "Additional source files")
 set(FMU_BUILD_DIR "${RTW_DIR}/FMUArchive")
@@ -94,11 +95,12 @@ elseif (APPLE)
 endif ()
 
 target_compile_definitions(${MODEL_NAME} PRIVATE
-	_CRT_SECURE_NO_WARNINGS
-	FIPXT_SHARED_MODULE
-	rt_matrx_h
-	RT_MALLOC
-	NDEBUG
+  _CRT_SECURE_NO_WARNINGS
+  FIPXT_SHARED_MODULE
+  rt_matrx_h
+  RT_MALLOC
+  NDEBUG
+  MATLAB_VERSION=${MATLAB_VERSION}
 )
 
 # don't add the "lib" prefix to the shared library
