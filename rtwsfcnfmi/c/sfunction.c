@@ -753,33 +753,24 @@ void setSampleStartValues(Model* m)
 }
 
 /* Setup of port dimensions in stand-alone mode (not including simulink.c) */
-
-int_T _ssSetInputPortMatrixDimensions_FMI(SimStruct *S, int_T port, int_T m, int_T n)
-{
+int_T _ssSetInputPortMatrixDimensions(SimStruct *S, int_T port, int_T m, int_T n) {
 	S->portInfo.inputs[port].width = ((m == DYNAMICALLY_SIZED) || (n == DYNAMICALLY_SIZED)) ? DYNAMICALLY_SIZED : (m * n);
-
-	return(1);
+    return 1;
 }
 
-int_T _ssSetOutputPortMatrixDimensions_FMI(SimStruct *S, int_T port, int_T m, int_T n)
-{
+int_T _ssSetOutputPortMatrixDimensions(SimStruct *S, int_T port, int_T m, int_T n) {
 	S->portInfo.outputs[port].width = ((m == DYNAMICALLY_SIZED) || (n == DYNAMICALLY_SIZED)) ? DYNAMICALLY_SIZED : (m * n);
-
-	return(1);
+    return 1;
 }
 
-int_T _ssSetInputPortVectorDimension_FMI(SimStruct *S, int_T port, int_T m)
-{
+int_T _ssSetInputPortVectorDimension(SimStruct *S, int_T port, int_T m) {
 	S->portInfo.inputs[port].width = m;
-
-	return(1);
+	return 1;
 }
 
-int_T _ssSetOutputPortVectorDimension_FMI(SimStruct *S, int_T port, int_T m)
-{
+int_T _ssSetOutputPortVectorDimension(SimStruct *S, int_T port, int_T m) {
 	S->portInfo.outputs[port].width = m;
-
-	return(1);
+    return 1;
 }
 
 #ifdef __APPLE__

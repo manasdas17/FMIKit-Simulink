@@ -297,31 +297,5 @@ void* sfcn_fmi_allocateBusObject(int_T isInput, int_T portid, int_T width)
   return 0;
 }
 
-#if !defined(MATLAB_MEX_FILE)
-int_T _ssSetInputPortMatrixDimensions(SimStruct *S, int_T port, int_T m, int_T n)
-{
-  extern int_T _ssSetInputPortMatrixDimensions_FMI(SimStruct *S, int_T port, int_T m, int_T n);
-  return _ssSetInputPortMatrixDimensions_FMI(S, port, m, n);
-} 
-
-int_T _ssSetOutputPortMatrixDimensions(SimStruct *S, int_T port, int_T m, int_T n)
-{
-  extern int_T _ssSetOutputPortMatrixDimensions_FMI(SimStruct *S, int_T port, int_T m, int_T n);
-  return _ssSetOutputPortMatrixDimensions_FMI(S, port, m, n);
-} 
-
-int_T _ssSetInputPortVectorDimension(SimStruct *S, int_T port, int_T m)
-{
-  extern int_T _ssSetInputPortVectorDimension_FMI(SimStruct *S, int_T port, int_T m);
-  return _ssSetInputPortVectorDimension_FMI(S, port, m);
-}
-
-int_T _ssSetOutputPortVectorDimension(SimStruct *S, int_T port, int_T m)
-{
-  extern int_T _ssSetOutputPortVectorDimension_FMI(SimStruct *S, int_T port, int_T m);
-  return _ssSetOutputPortVectorDimension_FMI(S, port, m);
-} 
-#endif
-
 %endwith
 %closefile deffile
