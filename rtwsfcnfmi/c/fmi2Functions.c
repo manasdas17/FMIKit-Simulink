@@ -14,7 +14,6 @@
 #include <math.h>
 
 #include "sfcn_fmi.h"
-#include "fmi.h"
 #include "fmi2Functions.h"	/* Official FMI 2.0 header */
 #include "sfunction.h"
 

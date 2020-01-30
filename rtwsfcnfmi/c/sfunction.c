@@ -10,7 +10,6 @@
 
 #include <math.h>
 
-#include "fmi.h"
 #include "sfcn_fmi.h"
 #include "sfunction.h"
 

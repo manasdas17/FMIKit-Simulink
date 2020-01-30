@@ -6,7 +6,9 @@
 
 #include "simstruc.h"
 
-#define SFCN_FMI_EPS 2e-13	/* Not supported with discrete sample times smaller than this */
+#define SFCN_FMI_MAX_TIME  1e100
+#define SFCN_FMI_EPS       2e-13  /* Not supported with discrete sample times smaller than this */
+
 
 /* Model status */
 typedef enum {
