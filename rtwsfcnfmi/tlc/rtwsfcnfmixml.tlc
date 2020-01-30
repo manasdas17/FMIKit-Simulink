@@ -1,6 +1,7 @@
 %% Starting generation of modelDescription.xml
 %openfile xmlfile = "modelDescription.xml"
-%openfile incfile = "fmiwrapper.inc"
+%openfile hfile   = "model_interface.h"
+%openfile incfile = "model_interface.c"
 %with CompiledModel
   %assign reusableFunction = ISFIELD(ConfigSet, "CodeInterfacePackaging") && ConfigSet.CodeInterfacePackaging == "Reusable function"
   %selectfile STDOUT
@@ -97,14 +98,10 @@
   %assign derivativeIndices = []
   %selectfile incfile
 #include "%<OrigName>_sf.h"
+#include "model_interface.h"
 
-typedef struct {
-	BuiltInDTypeId dtypeID;
-	size_t size;
-	void* address;
-} ModelVariable;
 
-static void initializeModelVariables(SimStruct* S, ModelVariable modelVariables[]) {
+void initializeModelVariables(SimStruct* S, ModelVariable modelVariables[]) {
   %% Parameters
   %selectfile xmlfile
 
@@ -272,7 +269,6 @@ static void initializeModelVariables(SimStruct* S, ModelVariable modelVariables[
   %selectfile incfile
 }
 
-#define N_MODEL_VARIABLES %<vr>
   %selectfile xmlfile
 
   </ModelVariables>
@@ -309,5 +305,24 @@ static void initializeModelVariables(SimStruct* S, ModelVariable modelVariables[
 </fmiModelDescription>
 %endwith
 
+%selectfile hfile
+#ifndef model_interface_h
+#define model_interface_h
+
+#include "tmwtypes.h"
+
+#define N_MODEL_VARIABLES %<vr>
+
+typedef struct {
+    BuiltInDTypeId dtypeID;
+    size_t size;
+    void* address;
+} ModelVariable;
+
+void initializeModelVariables(SimStruct* S, ModelVariable modelVariables[]);
+
+#endif /* model_interface_h */
+
 %closefile incfile
+%closefile hfile
 %closefile xmlfile

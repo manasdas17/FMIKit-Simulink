@@ -59,6 +59,8 @@ set(MODEL_SOURCES
   c/fmi2Functions.c
   c/sfunction.h
   c/sfunction.c
+  "${RTW_DIR}/model_interface.h"
+  "${RTW_DIR}/model_interface.c"
   "${RTW_DIR}/sfcn_fmi.h"
   "${RTW_DIR}/sfcn_fmi.c"
   "${RTW_DIR}/${MODEL_NAME}_sf.h"

@@ -16,10 +16,8 @@
 #include "sfcn_fmi.h"
 #include "fmi2Functions.h"	/* Official FMI 2.0 header */
 #include "sfunction.h"
+#include "model_interface.h"
 
-#include "fmiwrapper.inc"
-
-static ModelVariable s_modelVariables[N_MODEL_VARIABLES];
 
 typedef struct {
 	fmi2CallbackFunctions functions;
@@ -124,7 +122,7 @@ fmi2Component fmi2Instantiate(fmi2String	instanceName,
 
 	Model *model = InstantiateModel(instanceName, logMessage, userData);
 
-    initializeModelVariables(model->S, s_modelVariables);
+    initializeModelVariables(model->S, model->modelVariables);
     
 	model->isCoSim = fmi2False;
 	model->hasEnteredContMode = fmi2False;
@@ -271,13 +269,15 @@ fmi2Status fmi2Reset(fmi2Component c)
 
 fmi2Status fmi2SetReal(fmi2Component c, const fmi2ValueReference vr[], size_t nvr, const fmi2Real value[]) {
 
+    Model* model = (Model*) c;
+    
     for (size_t i = 0; i < nvr; i++) {
 
         if (vr[i] > N_MODEL_VARIABLES) {
             return fmi2Error;
         }
 
-        ModelVariable *mv = &s_modelVariables[vr[i] - 1];
+        ModelVariable *mv = &(model->modelVariables[vr[i] - 1]);
 
         real_T *p;
         
@@ -300,14 +300,16 @@ fmi2Status fmi2SetReal(fmi2Component c, const fmi2ValueReference vr[], size_t nv
 
 fmi2Status fmi2SetInteger(fmi2Component c, const fmi2ValueReference vr[], size_t nvr, const fmi2Integer value[]) {
     
+    Model* model = (Model*) c;
+
     for (size_t i = 0; i < nvr; i++) {
 
         if (vr[i] > N_MODEL_VARIABLES) {
             return fmi2Error;
         }
 
-        ModelVariable *mv = &s_modelVariables[vr[i] - 1];
-        
+        ModelVariable *mv = &(model->modelVariables[vr[i] - 1]);
+
         switch (mv->dtypeID) {
             case SS_INT8:
                 *((int8_T *)mv->address) = value[i];
@@ -337,14 +339,16 @@ fmi2Status fmi2SetInteger(fmi2Component c, const fmi2ValueReference vr[], size_t
 
 fmi2Status fmi2SetBoolean(fmi2Component c, const fmi2ValueReference vr[], size_t nvr, const fmi2Boolean value[]) {
     
+    Model* model = (Model*) c;
+
     for (size_t i = 0; i < nvr; i++) {
 
         if (vr[i] > N_MODEL_VARIABLES) {
             return fmi2Error;
         }
 
-        ModelVariable *mv = &s_modelVariables[vr[i] - 1];
-        
+        ModelVariable *mv = &(model->modelVariables[vr[i] - 1]);
+
         switch (mv->dtypeID) {
             case SS_BOOLEAN:
                 *((boolean_T *)mv->address) = value[i];
@@ -363,14 +367,16 @@ fmi2Status fmi2SetString(fmi2Component c, const fmi2ValueReference vr[], size_t 
 
 fmi2Status fmi2GetReal(fmi2Component c, const fmi2ValueReference vr[], size_t nvr, fmi2Real value[]) {
     
+    Model* model = (Model*) c;
+
     for (size_t i = 0; i < nvr; i++) {
         
         if (vr[i] > N_MODEL_VARIABLES) {
             continue;
         }
         
-        ModelVariable *mv = &s_modelVariables[vr[i] - 1];
-        
+        ModelVariable *mv = &(model->modelVariables[vr[i] - 1]);
+
         switch (mv->dtypeID) {
             case SS_SINGLE:
                 value[i] = *((real32_T *)mv->address);
@@ -388,14 +394,16 @@ fmi2Status fmi2GetReal(fmi2Component c, const fmi2ValueReference vr[], size_t nv
 
 fmi2Status fmi2GetInteger(fmi2Component c, const fmi2ValueReference vr[], size_t nvr, fmi2Integer value[]) {
     
+    Model* model = (Model*) c;
+
     for (size_t i = 0; i < nvr; i++) {
         
         if (vr[i] > N_MODEL_VARIABLES) {
             continue;
         }
         
-        ModelVariable *mv = &s_modelVariables[vr[i] - 1];
-        
+        ModelVariable *mv = &(model->modelVariables[vr[i] - 1]);
+
         switch (mv->dtypeID) {
             case SS_INT8:
                 value[i] = *((int8_T *)mv->address);
@@ -425,14 +433,16 @@ fmi2Status fmi2GetInteger(fmi2Component c, const fmi2ValueReference vr[], size_t
 
 fmi2Status fmi2GetBoolean(fmi2Component c, const fmi2ValueReference vr[], size_t nvr, fmi2Boolean value[]) {
     
-	    for (size_t i = 0; i < nvr; i++) {
+    Model* model = (Model*) c;
+
+    for (size_t i = 0; i < nvr; i++) {
         
         if (vr[i] > N_MODEL_VARIABLES) {
             continue;
         }
         
-        ModelVariable *mv = &s_modelVariables[vr[i] - 1];
-        
+        ModelVariable *mv = &(model->modelVariables[vr[i] - 1]);
+
         switch (mv->dtypeID) {
             case SS_BOOLEAN:
                 value[i] = *((boolean_T *)mv->address);

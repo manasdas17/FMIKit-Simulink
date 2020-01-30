@@ -5,6 +5,7 @@
 #endif
 
 #include "simstruc.h"
+#include "model_interface.h"
 
 #define SFCN_FMI_MAX_TIME  1e100
 #define SFCN_FMI_EPS       2e-13  /* Not supported with discrete sample times smaller than this */
@@ -51,6 +52,7 @@ struct Model_s {
 #endif
 	real_T* inputDerivatives;
 	real_T derivativeTime;
+    ModelVariable modelVariables[N_MODEL_VARIABLES];
 };
 
 /* Function to copy per-task sample hits */
