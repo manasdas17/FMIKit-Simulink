@@ -100,7 +100,7 @@ target_compile_definitions(${MODEL_NAME} PRIVATE
   rt_matrx_h
   RT_MALLOC
   NDEBUG
-  MATLAB_VERSION=${MATLAB_VERSION}
+  ${MATLAB_VERSION}
 )
 
 # don't add the "lib" prefix to the shared library
