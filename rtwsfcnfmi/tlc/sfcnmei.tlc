@@ -110,19 +110,6 @@ extern void  sfcn_fmi_mxGlobalTunable_(SimStruct* S, int_T create, int_T update)
 #include <stddef.h>
 
 
-%if FMIVersion == "2.0"
-/* Include header for FMI 2.0 */
-#include "fmi2Functions.h"
-%elseif FMIType == "CoSimulation"
-/* Define model identifier and include header for FMI 1.0 CS */
-#define MODEL_IDENTIFIER %<OrigName>_sf
-#include "fmiFunctions.h"
-%else
-/* Define model identifier and include header for FMI 1.0 ME */
-#define MODEL_IDENTIFIER %<OrigName>_sf
-#include "fmiModelFunctions.h"
-%endif
-
 %with GlobalScope
   %assign parType = tParametersType
   %assign defParam = tDefaultParameters
