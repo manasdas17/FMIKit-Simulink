@@ -35,6 +35,14 @@ switch hookMethod
             solver = 'ode1';  % use ode1 for model exchange
         end
         
+        % get model sources
+        [custom_include, custom_source, custom_library] = ...
+            rtwsfcnfmi_model_sources(modelName, pwd);
+        
+        custom_include = cmake_list(custom_include);
+        custom_source  = cmake_list(custom_source);
+        custom_library = cmake_list(custom_library);
+        
         % write the CMakeCache.txt file
         fid = fopen('CMakeCache.txt', 'w');
         fprintf(fid, 'MODEL_NAME:STRING=%s\n', modelName);
@@ -42,7 +50,9 @@ switch hookMethod
         fprintf(fid, 'RTW_DIR:STRING=%s\n', strrep(pwd, '\', '/'));
         fprintf(fid, 'MATLAB_ROOT:STRING=%s\n', strrep(matlabroot, '\', '/'));
         fprintf(fid, 'MATLAB_VERSION:STRING=%s\n', matlab_version);
+        fprintf(fid, 'CUSTOM_INCLUDE:STRING=%s\n', custom_include);
         fprintf(fid, 'CUSTOM_SOURCE:STRING=%s\n', custom_source);
+        fprintf(fid, 'CUSTOM_LIBRARY:STRING=%s\n', custom_library);
         %fprintf(fid, 'COMPILER_OPTIMIZATION_LEVEL:STRING=%s\n', get_param(gcs, 'CMakeCompilerOptimizationLevel'));
         %fprintf(fid, 'COMPILER_OPTIMIZATION_FLAGS:STRING=%s\n', get_param(gcs, 'CMakeCompilerOptimizationFlags'));
         fclose(fid);
@@ -57,6 +67,22 @@ switch hookMethod
         
         % copy the FMU to the working directory
         copyfile([modelName '.fmu'], '..');
+end
+
+end
+
+
+function joined = cmake_list(array)
+
+if isempty(array)
+    joined = '';
+    return
+end
+
+joined = array{1};
+
+for i = 2:numel(array)
+    joined = [joined ';' array{i}];  %#ok<ARGROW>
 end
 
 end

@@ -63,6 +63,7 @@
     %endif
   %endforeach
 %endif
+%assign mexext = FEVAL("mexext")
 %if numNonInlinedCMEXSFcns > 0
   %assign isFirst = TLC_TRUE
 #define SFCN_FMI_NBR_MEX %<numNonInlinedCMEXSFcns>
@@ -120,7 +121,6 @@ extern void  sfcn_fmi_mxGlobalTunable_(SimStruct* S, int_T create, int_T update)
 %assign isRelBeforeR2018a = FEVAL("verLessThan", "matlab", "9.4")
 
 %assign nbrGlobalTunable = 0
-%assign mexext = FEVAL("mexext")
 #if defined(MATLAB_MEX_FILE)
 #define mexCallMATLAB sfcn_fmi_load_%<mexext>
 #else
