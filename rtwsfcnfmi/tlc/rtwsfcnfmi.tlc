@@ -160,12 +160,13 @@
   rtwoptions(i).tooltip        = 'Check this box to include discrete states and modes in the XML model description. This feature is mainly for debugging.';
 
   i = i + 1;
-  rtwoptions(i).prompt         = 'Export image (.png) of Simulink model to FMU resources';
+  rtwoptions(i).prompt         = 'Add image of Simulink model';
   rtwoptions(i).type           = 'Checkbox';
   rtwoptions(i).default        = 'on';
-  rtwoptions(i).tlcvariable    = 'ExportImage';
+  rtwoptions(i).tlcvariable    = 'AddModelImage';
   rtwoptions(i).makevariable   = '';
-  rtwoptions(i).tooltip        = 'Check this box to export an image of the Simulink model to the FMU resources.';
+  rtwoptions(i).tooltip        = ...
+    'Add an image of the Simulink model to the FMU (model.png)';
 
   i = i + 1;
   rtwoptions(i).prompt         = 'Copy Simulink model to FMU resources';

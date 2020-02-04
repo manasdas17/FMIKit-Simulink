@@ -132,10 +132,26 @@ add_custom_command(TARGET ${MODEL_NAME} POST_BUILD COMMAND ${CMAKE_COMMAND} -E c
   ${FMU_BUILD_DIR}/binaries/${FMI_PLATFORM}/$<TARGET_FILE_NAME:${MODEL_NAME}>
 )
 
+set (ARCHIVE_FILES modelDescription.xml binaries)
+
+# model.png
+if (EXISTS ${FMU_BUILD_DIR}/model.png)
+  set (ARCHIVE_FILES ${ARCHIVE_FILES} model.png)
+endif ()
+
+# documentation
+if (EXISTS ${FMU_BUILD_DIR}/documentation)
+  set (ARCHIVE_FILES ${ARCHIVE_FILES} documentation)
+endif ()
+
+# resources
+if (EXISTS ${FMU_BUILD_DIR}/resources)
+  set (ARCHIVE_FILES ${ARCHIVE_FILES} resources)
+endif ()
+
 # create ZIP archive
 add_custom_command(TARGET ${MODEL_NAME} POST_BUILD
   COMMAND ${CMAKE_COMMAND} -E tar "cfv" ${RTW_DIR}/${MODEL_NAME}.fmu --format=zip
-  modelDescription.xml
-  binaries
+  ${ARCHIVE_FILES}
   WORKING_DIRECTORY ${FMU_BUILD_DIR}
 )

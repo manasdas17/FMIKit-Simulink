@@ -35,6 +35,15 @@ switch hookMethod
             copyfile(template_dir, 'FMUArchive');
         end
         
+        % add model.png
+        if strcmp(get_param(gcs, 'AddModelImage'), 'on')
+            % create an image of the model
+            print(['-s' modelName], '-dpng', fullfile('FMUArchive', 'model.png'));
+        else
+            % use the generic Simulink logo
+            copyfile(fullfile(grtfmi_dir, 'model.png'), fullfile('FMUArchive', 'model.png'));
+        end
+        
         pathstr = which('rtwsfcnfmi.tlc');
         [tlc_dir, ~, ~] = fileparts(pathstr);
         [cmakelists_dir, ~, ~] = fileparts(tlc_dir);
