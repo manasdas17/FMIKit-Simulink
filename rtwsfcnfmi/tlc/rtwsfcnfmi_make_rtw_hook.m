@@ -9,6 +9,32 @@ switch hookMethod
             return
         end
         
+        % remove FMU build directory from previous build
+        if exist('FMUArchive', 'dir')
+            rmdir('FMUArchive', 's');
+        end
+        
+        switch mexext
+            case 'mexa64'
+                fmi_platform = 'linux64';
+            case 'mexmaci64'
+                fmi_platform = 'darwin64';
+            case 'mexw32'
+                fmi_platform = 'win32';
+            case 'mexw64'
+                fmi_platform = 'win64';
+        end
+        
+        % create the archive directory (uncompressed FMU)
+        mkdir(fullfile('FMUArchive', 'binaries', fmi_platform));
+        
+        template_dir = get_param(gcs, 'FMUTemplateDir');
+        
+        % copy template files
+        if ~isempty(template_dir)
+            copyfile(template_dir, 'FMUArchive');
+        end
+        
         pathstr = which('rtwsfcnfmi.tlc');
         [tlc_dir, ~, ~] = fileparts(pathstr);
         [cmakelists_dir, ~, ~] = fileparts(tlc_dir);
@@ -36,12 +62,17 @@ switch hookMethod
         end
         
         % get model sources
-        [custom_include, custom_source, custom_library] = ...
+        [custom_include, custom_source, custom_library, mex_functions] = ...
             rtwsfcnfmi_model_sources(modelName, pwd);
         
         custom_include = cmake_list(custom_include);
         custom_source  = cmake_list(custom_source);
         custom_library = cmake_list(custom_library);
+        
+        % copy binary S-functions
+        for i = numel(mex_functions)
+            copyfile(which(mex_functions{i}), fullfile('FMUArchive', 'binaries', fmi_platform));
+        end
         
         % write the CMakeCache.txt file
         fid = fopen('CMakeCache.txt', 'w');
@@ -53,6 +84,7 @@ switch hookMethod
         fprintf(fid, 'CUSTOM_INCLUDE:STRING=%s\n', custom_include);
         fprintf(fid, 'CUSTOM_SOURCE:STRING=%s\n', custom_source);
         fprintf(fid, 'CUSTOM_LIBRARY:STRING=%s\n', custom_library);
+        fprintf(fid, 'BINARY_SFUNCTIONS:STRING=%s\n', cmake_list(mex_functions));
         %fprintf(fid, 'COMPILER_OPTIMIZATION_LEVEL:STRING=%s\n', get_param(gcs, 'CMakeCompilerOptimizationLevel'));
         %fprintf(fid, 'COMPILER_OPTIMIZATION_FLAGS:STRING=%s\n', get_param(gcs, 'CMakeCompilerOptimizationFlags'));
         fclose(fid);

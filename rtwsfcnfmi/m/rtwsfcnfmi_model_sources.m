@@ -52,10 +52,12 @@ include   = strrep(include, '\', '/');
 sources   = strrep(sources, '\', '/');
 libraries = strrep(libraries, '\', '/');
 
-if nargout == 3
-   varargout = {include, sources, libraries};
+mex_functions = {'timesthree'};
+
+if nargout == 4
+   varargout = {include, sources, libraries, mex_functions};
 else
-   varargout = {{include, sources, libraries}};
+   varargout = {{include, sources, libraries, mex_functions}};
 end
 
 end

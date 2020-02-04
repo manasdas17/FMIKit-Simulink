@@ -82,7 +82,7 @@
   rtwoptions(i).prompt        = 'FMI';
   rtwoptions(i).type          = 'Category';
   rtwoptions(i).enable        = 'on';  
-  rtwoptions(i).default       = 10;   % number of items under this category
+  rtwoptions(i).default       = 11;   % number of items under this category
                                       % excluding this one.
   rtwoptions(i).popupstrings  = '';
   rtwoptions(i).tlcvariable   = '';
@@ -118,6 +118,14 @@
   rtwoptions(i).tlcvariable    = 'ModelAuthor';
   rtwoptions(i).makevariable   = '';
   rtwoptions(i).tooltip        = 'Model author to be written in model description file (modelDescription.xml)';
+
+  i = i + 1;
+  rtwoptions(i).prompt        = 'Template directory';
+  rtwoptions(i).type          = 'Edit';
+  rtwoptions(i).default       = '';
+  rtwoptions(i).tlcvariable   = 'FMUTemplateDir';
+  rtwoptions(i).tooltip       = ...
+    'Template directory with files and folders to be added to the FMU';
 
   i = i + 1;
   rtwoptions(i).prompt         = 'Generate black-box FMU';

@@ -4,11 +4,12 @@ set(MODEL_NAME "" CACHE STRING "Model name")
 set(SOLVER "ode1" CACHE STRING "Solver")
 set_property(CACHE SOLVER PROPERTY STRINGS ode1 ode2 ode3 ode4 ode5 ode8 ode14x)
 set(MATLAB_ROOT "C:/Program Files/MATLAB/R2019b" CACHE STRING "MATLAB install directory")
-set(MATLAB_VERSION "9.7" CACHE STRING "MATLAB version for conditional compilation")
+set(MATLAB_VERSION "MATLAB_R2017b_" CACHE STRING "MATLAB version for conditional compilation")
 set(RTW_DIR "" CACHE STRING "RTW generated model directory")
 set(CUSTOM_INCLUDE "" CACHE STRING "Additional include directories")
 set(CUSTOM_SOURCE "" CACHE STRING "Additional source files")
 set(CUSTOM_LIBRARY "" CACHE STRING "Additional static libraries")
+set(LOAD_MEX OFF CACHE BOOL "Load S-Functions from MEX files")
 set(FMU_BUILD_DIR "${RTW_DIR}/FMUArchive")
 
 project (${MODEL_NAME})
@@ -89,9 +90,18 @@ elseif (APPLE)
   target_link_libraries(${MODEL_NAME} ${SOLVER})
 endif ()
 
+if (LOAD_MEX)
+  set(SFUNCTION_MODE MATLAB_MEX_FILE)
+  set_target_properties(${MODEL_NAME} PROPERTIES LINK_FLAGS "/DELAYLOAD:libmx.dll /DELAYLOAD:libmex.dll /DELAYLOAD:libmat.dll /DELAYLOAD:libfixedpoint.dll /DELAYLOAD:libut.dll")
+else ()
+  set(SFUNCTION_MODE FIPXT_SHARED_MODULE)
+endif ()
+
+message(${SFUNCTION_MODE})
+
 target_compile_definitions(${MODEL_NAME} PRIVATE
   _CRT_SECURE_NO_WARNINGS
-  FIPXT_SHARED_MODULE
+  ${SFUNCTION_MODE}
   rt_matrx_h
   RT_MALLOC
   NDEBUG

@@ -139,7 +139,8 @@ fmi2Component fmi2Instantiate(fmi2String	instanceName,
 void fmi2FreeInstance(fmi2Component c)
 {
 	Model* model = (Model*) c;
-    FreeModel(model);
+	// TODO: fix this
+    //FreeModel(model);
 }
 
 fmi2Status fmi2SetTime(fmi2Component c, fmi2Real time);
