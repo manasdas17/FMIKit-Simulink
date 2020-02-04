@@ -23,7 +23,16 @@ typedef enum {
 /* forward declare Model type */
 typedef struct Model_s Model;
 
-typedef void (*logMessageCallback)(Model *model, int status, const char *message, ...);
+typedef enum {
+	OK = 0,
+	Warning = 1,
+	// Discard = 2,
+	Error = 3,
+	Fatal = 4,
+	// Pending = 5
+} Status;
+
+typedef void (*logMessageCallback)(Model *model, Status status, const char *message, ...);
 
 /* Model data structure */
 struct Model_s {

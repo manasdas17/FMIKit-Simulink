@@ -365,7 +365,7 @@ Model *InstantiateModel(const char* instanceName, logMessageCallback logMessage,
 
 	model->status = modelInstantiated;
 
-	logMessage(model, 0, "Instantiation succeeded");
+	logMessage(model, OK, "Instantiation succeeded");
 	return model;
 
 fail:
@@ -373,16 +373,16 @@ fail:
 		if (model->S != NULL) {
 			if ((ssGetErrorStatus(model->S) != NULL) || (ssGetStopRequested(model->S) != 0)) {
 				if (ssGetStopRequested(model->S) != 0) {
-					logMessage(model, 3, "Stop requested by S-function!");
+					logMessage(model, Error, "Stop requested by S-function!");
 				}
 				if (ssGetErrorStatus(model->S) != NULL) {
-					logMessage(model, 3,"Error reported by S-function: %s", ssGetErrorStatus(model->S));
+					logMessage(model, Error,"Error reported by S-function: %s", ssGetErrorStatus(model->S));
 				}
 				FreeModel(model);
 				return NULL;
 			}
 		}
-		logMessage(model, 4, "Instantiation failed due to problems with memory allocation or dynamic loading.");
+		logMessage(model, Fatal, "Instantiation failed due to problems with memory allocation or dynamic loading.");
 		FreeModel(model);
 	}
 	return NULL;
@@ -521,7 +521,7 @@ void FreeModel(Model* model) {
 
     //assert(model->instanceName != NULL);
 
-//    logger(model, model->instanceName, fmi2OK, "", "Freeing instance\n");
+    model->logMessage(model, OK, "Freeing instance");
 
     if (model->S != NULL) {
         // TODO: remove?
@@ -809,42 +809,42 @@ static int LoadMEXAndDependencies(Model *model)
     }
     if (_SFCN_FMI_MATLAB_BIN == NULL) {
         SetDllDirectory(SFCN_FMI_MATLAB_BIN);
-        //logger(model, model->instanceName, fmi2OK, "", "Setting DLL directory for MATLAB dependencies: %s", SFCN_FMI_MATLAB_BIN);
-        //logger(model, model->instanceName, fmi2OK, "", "The environment variable SFCN_FMI_MATLAB_BIN can be used to override this path.");
+		model->logMessage(model, OK, "Setting DLL directory for MATLAB dependencies: %s", SFCN_FMI_MATLAB_BIN);
+		model->logMessage(model, OK, "The environment variable SFCN_FMI_MATLAB_BIN can be used to override this path.");
     } else {
         SetDllDirectory(_SFCN_FMI_MATLAB_BIN);
-        //logger(model, model->instanceName, fmi2OK, "", "Setting DLL directory for MATLAB dependencies: %s", _SFCN_FMI_MATLAB_BIN);
-        //logger(model, model->instanceName, fmi2OK, "", "Environment variable SFCN_FMI_MATLAB_BIN was used to override default path.");
+        model->logMessage(model, OK, "Setting DLL directory for MATLAB dependencies: %s", _SFCN_FMI_MATLAB_BIN);
+        model->logMessage(model, OK, "Environment variable SFCN_FMI_MATLAB_BIN was used to override default path.");
     }
-    //logger(model, model->instanceName, fmi2OK, "", "Loading from MATLAB bin...");
+    model->logMessage(model, OK, "Loading from MATLAB bin...");
     if (hInst=LoadLibraryA("libmx.dll")) {
-        //logger(model, model->instanceName, fmi2OK, "", "...libmx.dll");
+        model->logMessage(model, OK, "...libmx.dll");
     } else  {
-        //logger(model, model->instanceName, fmi2Error, "", "Failed to load binary libmx.dll\n");
+        model->logMessage(model, Error, "Failed to load binary libmx.dll");
         return 0;
     }
     if (hInst=LoadLibraryA("libmex.dll")) {
-        //logger(model, model->instanceName, fmi2OK, "", "...libmex.dll");
+        model->logMessage(model, OK, "...libmex.dll");
     } else  {
-        //logger(model, model->instanceName, fmi2Error, "", "Failed to load binary libmex.dll\n");
+        model->logMessage(model, Error, "Failed to load binary libmex.dll");
         return 0;
     }
     if (hInst=LoadLibraryA("libmat.dll")) {
-        //logger(model, model->instanceName, fmi2OK, "", "...libmat.dll");
+        model->logMessage(model, OK, "...libmat.dll");
     } else  {
-        //logger(model, model->instanceName, fmi2Error, "", "Failed to load binary libmat.dll\n");
+        model->logMessage(model, Error, "Failed to load binary libmat.dll");
         return 0;
     }
     if (hInst=LoadLibraryA("libfixedpoint.dll")) {
-        //logger(model, model->instanceName, fmi2OK, "", "...libfixedpoint.dll");
+        model->logMessage(model, OK, "...libfixedpoint.dll");
     } else  {
-        //logger(model, model->instanceName, fmi2Error, "", "Failed to load binary libfixedpoint.dll\n");
+        model->logMessage(model, Error, "Failed to load binary libfixedpoint.dll");
         return 0;
     }
     if (hInst=LoadLibraryA("libut.dll")) {
-        //logger(model, model->instanceName, fmi2OK, "", "...libut.dll");
+        model->logMessage(model, OK, "...libut.dll");
     } else  {
-        //logger(model, model->instanceName, fmi2Error, "", "Failed to load binary libut.dll\n");
+        model->logMessage(model, Error, "Failed to load binary libut.dll");
         return 0;
     }
     hMySelf=GetModuleHandleA(SFCN_FMI_MODEL_IDENTIFIER);
@@ -854,7 +854,7 @@ static int LoadMEXAndDependencies(Model *model)
         strcpy(fmuPath, dli.dli_fname);
     } else {
 #endif
-        //logger(model, model->instanceName, fmi2Fatal, "", "Failed to retrieve module file name for %s\n", SFCN_FMI_MODEL_IDENTIFIER);
+        model->logMessage(model, Fatal, "Failed to retrieve module file name for %s", SFCN_FMI_MODEL_IDENTIFIER);
         return 0;
     }
     fmuPath[sizeof(fmuPath)/sizeof(*fmuPath)-1]=0; /* Make sure it is NUL-terminated */
@@ -878,7 +878,7 @@ static int LoadMEXAndDependencies(Model *model)
 #endif
     for (i=0; i<SFCN_FMI_NBR_MEX; i++) {
         if (i==0) {
-            //logger(model, model->instanceName, fmi2OK, "", "Loading S-function MEX files from FMU resources...");
+            model->logMessage(model, OK, "Loading S-function MEX files from FMU resources...");
 #if defined(_MSC_VER)
             SetDllDirectory(mexDir); /* To handle dependencies to other DLLs in the same folder */
 #endif
@@ -893,9 +893,9 @@ static int LoadMEXAndDependencies(Model *model)
             if (hInst != NULL) {
 #endif
                 model->mexHandles[i]=hInst;
-                //logger(model, model->instanceName, fmi2OK, "", "...%s", SFCN_FMI_MEX_NAMES[i]);
+                model->logMessage(model, OK, "...%s", SFCN_FMI_MEX_NAMES[i]);
             } else  {
-                //logger(model, model->instanceName, fmi2Error, "", "Failed to load binary MEX file: %s", SFCN_FMI_MEX_NAMES[i]);
+                model->logMessage(model, Error, "Failed to load binary MEX file: %s", SFCN_FMI_MEX_NAMES[i]);
                 return 0;
             }
 #if !defined(_MSC_VER)
@@ -942,21 +942,21 @@ int sfcn_fmi_load_mex(int nlhs, mxArray *plhs[], int nrhs, mxArray *prhs[], cons
         }
 #endif
         if (mexFunc) {
-            //logger(currentModel, currentModel->instanceName, fmi2OK, "", "Calling MEX S-function: %s", mexName);
+            currentModel->logMessage(currentModel, OK, "Calling MEX S-function: %s", mexName);
             mexFunc(nlhs, plhs, nrhs, (const mxArray**)prhs);
             if (currentModel->S != NULL) {
                 if (ssGetErrorStatus(currentModel->S) != NULL) {
-                    //logger(currentModel, currentModel->instanceName, fmi2Fatal, "",
-                        //"Error in S-function (mdlInitializeSizes): %s\n", ssGetErrorStatus(currentModel->S));
+					currentModel->logMessage(currentModel, Fatal,
+                        "Error in S-function (mdlInitializeSizes): %s", ssGetErrorStatus(currentModel->S));
                     return 1;
                 }
             }
         } else {
-            //logger(currentModel, currentModel->instanceName, fmi2Fatal, "", "Failed to retrieve 'mexFunction' entry point from %s\n", mexName);
+			currentModel->logMessage(currentModel, Fatal, "Failed to retrieve 'mexFunction' entry point from %s", mexName);
             return 1;
         }
     } else  {
-        //logger(currentModel, currentModel->instanceName, fmi2Fatal, "", "Failed to retrieve handle to call binary MEX file: %s", mexName);
+		currentModel->logMessage(currentModel, Fatal, "", "Failed to retrieve handle to call binary MEX file: %s", mexName);
         return 1;
     }
 
@@ -972,9 +972,9 @@ void NewDiscreteStates(Model *model, int *valuesOfContinuousStatesChanged, real_
     real_T compareVal;
     int_T sampleHit = 0;
 
-//#if defined(SFCN_FMI_VERBOSITY)
-//    logger(model, model->instanceName, fmi2OK, "", "fmi2NewDiscreteStates: Call at time = %.16f\n", ssGetT(model->S));
-//#endif
+#if defined(SFCN_FMI_VERBOSITY)
+    model->logMessage(model, OK, "NewDiscreteStates() called at t=%.16f", ssGetT(model->S));
+#endif
 
     /* Set sample hits for discrete systems */
     for (i = 0; i < model->S->sizes.numSampleTimes; i++) {
@@ -991,9 +991,9 @@ void NewDiscreteStates(Model *model, int *valuesOfContinuousStatesChanged, real_
             if (isEqual(ssGetT(model->S), compareVal)) {
                 sampleHit = 1;
                 model->S->mdlInfo->sampleHits[i] = 1;
-//#if defined(SFCN_FMI_VERBOSITY)
-//                logger(model, model->instanceName, fmi2OK, "", "fmi2NewDiscreteStates: Sample hit for task %d\n", i);
-//#endif
+#if defined(SFCN_FMI_VERBOSITY)
+				model->logMessage(model, OK, "NewDiscreteStates(): Sample hit for task %d", i);
+#endif
                 /* Update time for next sample hit */
                 model->numSampleHits[i]++;
             }
@@ -1022,9 +1022,9 @@ void NewDiscreteStates(Model *model, int *valuesOfContinuousStatesChanged, real_
         _ssSetTimeOfLastOutput(model->S,model->S->mdlInfo->t[0]);
         
         if (ssGetmdlUpdate(model->S) != NULL) {
-//#if defined(SFCN_FMI_VERBOSITY)
-//            logger(model, model->instanceName, fmi2OK, "", "fmi2NewDiscreteStates: Calling mdlUpdate at time %.16f\n", ssGetT(model->S));
-//#endif
+#if defined(SFCN_FMI_VERBOSITY)
+			model->logMessage(model, OK, "NewDiscreteStates(): calling mdlUpdate() at t=%.16f", ssGetT(model->S));
+#endif
             sfcnUpdate(model->S, 0);
         }
         
@@ -1090,15 +1090,15 @@ void NewDiscreteStates(Model *model, int *valuesOfContinuousStatesChanged, real_
         _ssClearSolverNeedsReset(model->S);
 #endif
         *valuesOfContinuousStatesChanged = 1;
-//#if defined(SFCN_FMI_VERBOSITY)
-//        logger(model, model->instanceName, fmi2OK, "", "fmi2NewDiscreteStates: State values changed at time %.16f\n", ssGetT(model->S));
-//#endif
+#if defined(SFCN_FMI_VERBOSITY)
+		model->logMessage(model, OK, "NewDiscreteStates(): State values changed at t=%.16f", ssGetT(model->S));
+#endif
     }
         
 //    eventInfo->nextEventTimeDefined = (nextT < SFCN_FMI_MAX_TIME);
 //    eventInfo->nextEventTime = nextT;
 
-//#if defined(SFCN_FMI_VERBOSITY)
-//        logger(model, model->instanceName, fmi2OK, "", "fmi2NewDiscreteStates: Event handled at time = %.16f, next event time at %.16f\n", ssGetT(model->S), nextT);
-//#endif
+#if defined(SFCN_FMI_VERBOSITY)
+	model->logMessage(model, OK, "NewDiscreteStates(): Event handled at t=%.16f, next event at t=%.16f", ssGetT(model->S), nextT);
+#endif
 }

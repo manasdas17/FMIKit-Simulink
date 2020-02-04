@@ -11,6 +11,8 @@
 -----------------------------------------------------------
 */
 
+#include <stdio.h>
+#include <stdarg.h>
 #include <math.h>
 
 #include "sfcn_fmi.h"
@@ -45,8 +47,17 @@ typedef struct {
 /* ------------------ Local help functions ------------------- */
 
 static void logMessage(Model *model, int status, const char *message, ...) {
+
+	char buf[1024];
+	va_list args;
+
+	va_start(args, message);
+	vsnprintf(buf, 1024, message, args);
+	va_end(args);
+
 	UserData *userData = (UserData *)model->userData;
-	userData->functions.logger(userData->functions.componentEnvironment, model->instanceName, status, "", message);
+
+	userData->functions.logger(userData->functions.componentEnvironment, model->instanceName, status, "", buf);
 }
 
 /* Function for double precision comparison */
