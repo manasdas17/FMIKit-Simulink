@@ -143,7 +143,7 @@ void initializeModelVariables(SimStruct* S, ModelVariable modelVariables[]) {
     <!-- Inputs -->
       %foreach portid = NumExternalInputs
         %assign port         = ExternalInput[portid]
-        %assign variableName = "Inputs." + port.Identifier
+        %assign variableName = port.Identifier
         %assign dataTypeName = SLibGetRecordDataTypeName(port, "")
         %assign width        = LibGetRecordWidth(port)
         %assign dataName     = "*((%<dataTypeName> **)ssGetInputPortSignalPtrs(S, %<portid>))"
@@ -169,7 +169,7 @@ void initializeModelVariables(SimStruct* S, ModelVariable modelVariables[]) {
         %assign sysid        = port.Block[0]
         %assign blkid        = port.Block[1]
         %assign block        = System[sysid].Block[blkid]
-        %assign variableName = "Outputs." + block.Identifier
+        %assign variableName = block.Identifier
         %assign dataTypeName = SLibGetRecordDataTypeName(port, "")
         %assign width        = LibGetRecordWidth(port)
         %assign dataName     = "((%<dataTypeName> *)ssGetOutputPortSignal(S, %<portid>))"
