@@ -131,98 +131,83 @@ static int_T setNumDWork_FMI(SimStruct* S, int_T numDWork)
 	return 1;
 }
 
-/* Common macro to allocate input port */
-#define FMI_INPORT(type, value) {										            \
-	int i;																			\
-	type** inputPtrs;																\
-	type* inputSignals;																\
-	inputPtrs    = (type**) calloc(width, sizeof(type*));					\
-	inputSignals = (type*) calloc(width, sizeof(type));					\
-	for (i=0; i<width; i++) {														\
-		inputSignals[i] = value;													\
-		inputPtrs[i] = &(inputSignals[i]);											\
-	}																				\
-	arg1->portInfo.inputs[port].signal.ptrs = (InputPtrsType) inputPtrs;							\
-}
+static int_T SetInputPortDimensionInfoFcn_FMI(SimStruct *S, int_T port) {
 
-static int_T SetInputPortDimensionInfoFcn_FMI(SimStruct *arg1, int_T port)
-{
 	int i;
-	void** busInputPtrs;
-	void*  busInputObject;
-	int_T width = arg1->portInfo.inputs[port].width;
+	void **busInputPtrs;
+	void *busInputObject;
+	int_T width = S->portInfo.inputs[port].width;
 
 	/* Attempt allocating bus object for port */
 	busInputObject = sfcn_fmi_allocateBusObject(1, port, width);
+
 	if (busInputObject != 0) {
+
 		busInputPtrs = (void**)calloc(width, sizeof(void*));
 		busInputPtrs[0] = busInputObject;
+		
 		for (i = 1; i<width; i++) {
 			busInputPtrs[i] = sfcn_fmi_allocateBusObject(1, port, width);
 		}
-		arg1->portInfo.inputs[port].signal.ptrs = (InputPtrsType)busInputPtrs;
+		
+		S->portInfo.inputs[port].signal.ptrs = (InputPtrsType)busInputPtrs;
+		
 		return 1;
 	}
 
+	size_t typeSize;
+
 	/* Allocate port signal vectors */
-	switch (arg1->portInfo.inputs[port].dataTypeId) {
-	case SS_DOUBLE:   /* real_T    */
-	{
-		FMI_INPORT(real_T, 0.0);
-	}
-	break;
-	case SS_SINGLE:   /* real32_T  */
-		FMI_INPORT(real32_T, 0.0);
+	switch (S->portInfo.inputs[port].dataTypeId) {
+	case SS_DOUBLE:
+		typeSize = sizeof(real_T);
 		break;
-	case SS_INTEGER:  /* int_T */
-	{
-		FMI_INPORT(int_T, 0);
-	}
+	case SS_SINGLE:
+		typeSize = sizeof(real32_T);
+		break;
+	case SS_INTEGER:
+		typeSize = sizeof(int_T);
+		break;
+	case SS_INT8:
+		typeSize = sizeof(int8_T);
+		break;
+	case SS_UINT8:
+		typeSize = sizeof(uint8_T);
+		break;
+	case SS_INT16:
+		typeSize = sizeof(int16_T);
+		break;
 	break;
-	case SS_INT8:     /* int8_T    */
-	{
-		FMI_INPORT(int8_T, 0);
-	}
-	break;
-	case SS_UINT8:    /* uint8_T   */
-	{
-		FMI_INPORT(uint8_T, 0);
-	}
-	break;
-	case SS_INT16:    /* int16_T   */
-	{
-		FMI_INPORT(int16_T, 0);
-	}
-	break;
-	case SS_UINT16:   /* uint16_T  */
-	{
-		FMI_INPORT(uint16_T, 0);
-	}
-	break;
-	case SS_INT32:    /* int32_T   */
-	{
-		FMI_INPORT(int32_T, 0);
-	}
-	break;
-	case SS_UINT32:   /* uint32_T  */
-	{
-		FMI_INPORT(uint32_T, 0);
-	}
-	break;
-	case SS_BOOLEAN:  /* boolean_T */
-	{
-		FMI_INPORT(boolean_T, false);
-	}
-	break;
-	default:		/* default real_T */
-	{
-		FMI_INPORT(real_T, 0.0);
-	}
-	break;
+	case SS_UINT16:
+		typeSize = sizeof(uint16_T);
+		break;
+	case SS_INT32:
+		typeSize = sizeof(int32_T);
+		break;
+	case SS_UINT32:
+		typeSize = sizeof(uint32_T);
+		break;
+	case SS_BOOLEAN:
+		typeSize = sizeof(boolean_T);
+		break;
+	default:
+		typeSize = sizeof(real_T);
+		break;
 	}
 
+	void **inputPtrs   = (void **)calloc(width, sizeof(void *));
+	void *inputSignals = (void  *)calloc(width, typeSize);
+
+	/* Allocate port signal vectors */
+	for (int i = 0; i < width; i++) {
+		inputPtrs[i] = inputSignals;
+		((char *)inputSignals) += typeSize;
+	}
+	
+	S->portInfo.inputs[port].signal.ptrs = (InputPtrsType)inputPtrs;
+
 	return 1;
-};
+}
 
 /* SimStruct callback functions to setup dimensions and allocate ports */
 
