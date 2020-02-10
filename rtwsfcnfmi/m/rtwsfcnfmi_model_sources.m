@@ -22,22 +22,29 @@ for i = 1:numel(gen_sources)
 end
 
 % S-functions sources
+mex_functions = {};
 modules = {};
 sfcns = find_system(model, 'LookUnderMasks', 'on', 'FollowLinks', 'on', 'BlockType', 'S-Function');
 for i = 1:numel(sfcns)
     block = sfcns{i};
-    modules = [modules get_param(block, 'FunctionName') ...
+    function_name = get_param(block, 'FunctionName');
+    mex_functions{end+1} = which(function_name);
+    modules = [modules function_name ...
       regexp(get_param(block, 'SFunctionModules'), '\s+', 'split')]; %#ok<AGROW>
 end
+mex_functions = unique(mex_functions);
+modules = unique(modules);
 
 % add S-function sources
-for i = 1:numel(modules)
-    src_file_ext = {'.c', '.cc', '.cpp', '.cxx', '.c++'};
-    for j = 1:numel(src_file_ext)
-        source_file = which([modules{i} src_file_ext{j}]);
-        if ~isempty(source_file) && ~any(strcmp(sources, source_file))
-            sources{end+1} = source_file; %#ok<AGROW>
-            break
+if strcmp(get_param(model, 'LoadBinaryMEX'), 'off')
+    for i = 1:numel(modules)
+        src_file_ext = {'.c', '.cc', '.cpp', '.cxx', '.c++'};
+        for j = 1:numel(src_file_ext)
+            source_file = which([modules{i} src_file_ext{j}]);
+            if ~isempty(source_file) && ~any(strcmp(sources, source_file))
+                sources{end+1} = source_file; %#ok<AGROW>
+                break
+            end
         end
     end
 end
@@ -51,8 +58,6 @@ libraries = split_path_list(get_param(model, 'CustomLibrary'));
 include   = strrep(include, '\', '/');
 sources   = strrep(sources, '\', '/');
 libraries = strrep(libraries, '\', '/');
-
-mex_functions = {'timesthree'};
 
 if nargout == 4
    varargout = {include, sources, libraries, mex_functions};
