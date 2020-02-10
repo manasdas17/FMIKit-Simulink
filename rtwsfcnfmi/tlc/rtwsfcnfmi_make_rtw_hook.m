@@ -5,7 +5,7 @@ switch hookMethod
     case 'after_make'
         
         % skip if build is disabled
-        if strcmp(get_param(gcs, 'GenCodeOnly'), 'on')
+        if strcmp(get_param(modelName, 'GenCodeOnly'), 'on')
             return
         end
         
@@ -28,7 +28,7 @@ switch hookMethod
         % create the archive directory (uncompressed FMU)
         mkdir(fullfile('FMUArchive', 'binaries', fmi_platform));
         
-        template_dir = get_param(gcs, 'FMUTemplateDir');
+        template_dir = get_param(modelName, 'FMUTemplateDir');
         
         % copy template files
         if ~isempty(template_dir)
@@ -36,7 +36,7 @@ switch hookMethod
         end
         
         % add model.png
-        if strcmp(get_param(gcs, 'AddModelImage'), 'on')
+        if strcmp(get_param(modelName, 'AddModelImage'), 'on')
             % create an image of the model
             print(['-s' modelName], '-dpng', fullfile('FMUArchive', 'model.png'));
         else
@@ -62,9 +62,6 @@ switch hookMethod
             matlab_version = 'MATLAB_R2017b_';  % R2017b - R2018b
         end
         
-        custom_source = get_param(gcs, 'CustomSource');
-        custom_source = which(custom_source);
-        
         solver = buildOpts.solver;
         if ~strcmp(solver, {'ode1', 'ode2', 'ode3', 'ode4', 'ode5', 'ode8', 'ode14x'})
             solver = 'ode1';  % use ode1 for model exchange
@@ -79,8 +76,10 @@ switch hookMethod
         custom_library = cmake_list(custom_library);
         
         % copy binary S-functions
-        for i = numel(mex_functions)
-            copyfile(which(mex_functions{i}), fullfile('FMUArchive', 'binaries', fmi_platform));
+        if strcmp(get_param(modelName, 'LoadBinaryMEX'), 'on')
+            for i = 1:numel(mex_functions)
+                copyfile(which(mex_functions{i}), fullfile('FMUArchive', 'binaries', fmi_platform));
+            end
         end
         
         % write the CMakeCache.txt file
@@ -94,8 +93,8 @@ switch hookMethod
         fprintf(fid, 'CUSTOM_SOURCE:STRING=%s\n', custom_source);
         fprintf(fid, 'CUSTOM_LIBRARY:STRING=%s\n', custom_library);
         fprintf(fid, 'BINARY_SFUNCTIONS:STRING=%s\n', cmake_list(mex_functions));
-        %fprintf(fid, 'COMPILER_OPTIMIZATION_LEVEL:STRING=%s\n', get_param(gcs, 'CMakeCompilerOptimizationLevel'));
-        %fprintf(fid, 'COMPILER_OPTIMIZATION_FLAGS:STRING=%s\n', get_param(gcs, 'CMakeCompilerOptimizationFlags'));
+        %fprintf(fid, 'COMPILER_OPTIMIZATION_LEVEL:STRING=%s\n', get_param(modelName, 'CMakeCompilerOptimizationLevel'));
+        %fprintf(fid, 'COMPILER_OPTIMIZATION_FLAGS:STRING=%s\n', get_param(modelName, 'CMakeCompilerOptimizationFlags'));
         fclose(fid);
         
         disp('### Generating project')
