@@ -23,6 +23,7 @@
   generationDateAndTime="%<XMLdate>"
   %assign description = FEVAL("get_param", "%<OrigName>", "Description")
   %if !ISEMPTY(description)
+    %assign description = FEVAL("strrep", description, "\"", "&quot;")
   description="%<description>"
   %endif
   %if !ISEMPTY(ModelAuthor)
