@@ -94,7 +94,7 @@
         %assign nbrVariables = nbrVariables + nbrBusInPortVars
         %selectfile busiofile
         %assign bustype = SLibGetRecordDataTypeName(port, "")
-if ( isInput && portid==%<portid>) return allocateMemory0(1, sizeof(%<bustype>));
+if ( isInput && portid==%<portid>) return calloc(1, sizeof(%<bustype>));
       %else
         %with port
           %assign typeName = SLibGetRecordDataTypeName(port, "")
@@ -166,7 +166,7 @@ if ( isInput && portid==%<portid>) return allocateMemory0(1, sizeof(%<bustype>))
           %assign nbrVariables = nbrVariables + nbrBusOutPortVars
           %selectfile busiofile
           %assign bustype = SLibGetRecordDataTypeName(outportBlock.DataInputPort, "")
-if (!isInput && portid==%<portid>) return allocateMemory0(width, sizeof(%<bustype>));
+if (!isInput && portid==%<portid>) return calloc(width, sizeof(%<bustype>));
         %else
 	      %with outportBlock
             %assign typeName = SLibGetRecordDataTypeName(outp, "")
