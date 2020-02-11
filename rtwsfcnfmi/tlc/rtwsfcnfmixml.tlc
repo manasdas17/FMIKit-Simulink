@@ -102,6 +102,18 @@
 #include "model_interface.h"
 
 
+size_t getCGTypeSize(int typeIndex) {
+
+  switch (typeIndex) {
+  %foreach dataTypeIdx = DataTypes.NumDataTypes
+    %assign dataType = DataTypes.DataType[dataTypeIdx]
+    case %<dataType.CGTypeIdx>: return %<dataType.Size>; /* %<dataType.Name> */
+  %endforeach
+    default: return 0; /* unknown type */
+  }
+
+}
+
 void initializeModelVariables(SimStruct* S, ModelVariable modelVariables[]) {
   %% Parameters
   %selectfile xmlfile
@@ -319,6 +331,8 @@ typedef struct {
     size_t size;
     void* address;
 } ModelVariable;
+
+size_t getCGTypeSize(int typeIndex);
 
 void initializeModelVariables(SimStruct* S, ModelVariable modelVariables[]);
 

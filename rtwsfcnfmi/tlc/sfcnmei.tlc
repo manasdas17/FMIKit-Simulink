@@ -89,7 +89,6 @@ extern void* sfcn_fmi_allocateBusObject(int_T isInput, int_T portid, int_T width
 extern void  sfcn_fmi_registerMdlCallbacks_(SimStruct* S);
 extern void  sfcn_fmi_registerRTModelCallbacks_(SimStruct*S);
 extern void  sfcn_fmi_copyToSFcnParams_(SimStruct* S);
-extern void* sfcn_fmi_allocateBusObject(int_T isInput, int_T portid, int_T width);
 extern void  sfcn_fmi_mxGlobalTunable_(SimStruct* S, int_T create, int_T update);
 
 %endif
@@ -275,13 +274,6 @@ void sfcn_fmi_mxGlobalTunable_(SimStruct* S, int_T create, int_T update)
 %else
   return; /* no global tunable parameters as mxArrays */
 %endif
-}
-
-/* Sizes of bus I/O structs for allocation in FMU */
-void* sfcn_fmi_allocateBusObject(int_T isInput, int_T portid, int_T width)
-{
-  %include "%<buildDir>/busio.tmp"
-  return 0;
 }
 
 %endwith

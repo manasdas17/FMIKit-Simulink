@@ -12,6 +12,7 @@
 
 #include "sfcn_fmi.h"
 #include "sfunction.h"
+#include "model_interface.h"
 
 Model* currentModel = NULL;
 
@@ -133,67 +134,8 @@ static int_T setNumDWork_FMI(SimStruct* S, int_T numDWork)
 
 static int_T SetInputPortDimensionInfoFcn_FMI(SimStruct *S, int_T port) {
 
-	int i;
-	void **busInputPtrs;
-	void *busInputObject;
+	size_t typeSize = getCGTypeSize(S->portInfo.inputs[port].dataTypeId);
 	int_T width = S->portInfo.inputs[port].width;
-
-	/* Attempt allocating bus object for port */
-	busInputObject = sfcn_fmi_allocateBusObject(1, port, width);
-
-	if (busInputObject != 0) {
-
-		busInputPtrs = (void**)calloc(width, sizeof(void*));
-		busInputPtrs[0] = busInputObject;
-		
-		for (i = 1; i<width; i++) {
-			busInputPtrs[i] = sfcn_fmi_allocateBusObject(1, port, width);
-		}
-		
-		S->portInfo.inputs[port].signal.ptrs = (InputPtrsType)busInputPtrs;
-		
-		return 1;
-	}
-
-	size_t typeSize;
-
-	/* Allocate port signal vectors */
-	switch (S->portInfo.inputs[port].dataTypeId) {
-	case SS_DOUBLE:
-		typeSize = sizeof(real_T);
-		break;
-	case SS_SINGLE:
-		typeSize = sizeof(real32_T);
-		break;
-	case SS_INTEGER:
-		typeSize = sizeof(int_T);
-		break;
-	case SS_INT8:
-		typeSize = sizeof(int8_T);
-		break;
-	case SS_UINT8:
-		typeSize = sizeof(uint8_T);
-		break;
-	case SS_INT16:
-		typeSize = sizeof(int16_T);
-		break;
-	break;
-	case SS_UINT16:
-		typeSize = sizeof(uint16_T);
-		break;
-	case SS_INT32:
-		typeSize = sizeof(int32_T);
-		break;
-	case SS_UINT32:
-		typeSize = sizeof(uint32_T);
-		break;
-	case SS_BOOLEAN:
-		typeSize = sizeof(boolean_T);
-		break;
-	default:
-		typeSize = sizeof(real_T);
-		break;
-	}
 
 	void **inputPtrs   = (void **)calloc(width, sizeof(void *));
 	void *inputSignals = (void  *)calloc(width, typeSize);
@@ -211,54 +153,12 @@ static int_T SetInputPortDimensionInfoFcn_FMI(SimStruct *S, int_T port) {
 
 /* SimStruct callback functions to setup dimensions and allocate ports */
 
-static int_T SetOutputPortDimensionInfoFcn_FMI(SimStruct *arg1, int_T port)
-{
-	void*  busOutputVector;
-	int_T width = arg1->portInfo.outputs[port].width;
+static int_T SetOutputPortDimensionInfoFcn_FMI(SimStruct *S, int_T port) {
 
-	/* Attempt allocating bus vector for port */
-	busOutputVector = sfcn_fmi_allocateBusObject(0, port, width);
-	if (busOutputVector != 0) {
-		arg1->portInfo.outputs[port].signalVect = busOutputVector;
-		return 1;
-	}
+	int_T width = S->portInfo.outputs[port].width;
+	size_t size = getCGTypeSize(S->portInfo.outputs[port].dataTypeId);
 
-	/* Allocate port signal vector */
-	switch (arg1->portInfo.outputs[port].dataTypeId) {
-	case SS_DOUBLE:   /* real_T    */
-		arg1->portInfo.outputs[port].signalVect = (real_T*)calloc(width, sizeof(real_T));
-		break;
-	case SS_SINGLE:   /* real32_T  */
-		arg1->portInfo.outputs[port].signalVect = (real32_T*)calloc(width, sizeof(real32_T));
-		break;
-	case SS_INTEGER:  /* int_T */
-		arg1->portInfo.outputs[port].signalVect = (int_T*)calloc(width, sizeof(int_T));
-		break;
-	case SS_INT8:     /* int8_T    */
-		arg1->portInfo.outputs[port].signalVect = (int8_T*)calloc(width, sizeof(int8_T));
-		break;
-	case SS_UINT8:    /* uint8_T   */
-		arg1->portInfo.outputs[port].signalVect = (uint8_T*)calloc(width, sizeof(uint8_T));
-		break;
-	case SS_INT16:    /* int16_T   */
-		arg1->portInfo.outputs[port].signalVect = (int16_T*)calloc(width, sizeof(int16_T));
-		break;
-	case SS_UINT16:   /* uint16_T  */
-		arg1->portInfo.outputs[port].signalVect = (uint16_T*)calloc(width, sizeof(uint16_T));
-		break;
-	case SS_INT32:    /* int32_T   */
-		arg1->portInfo.outputs[port].signalVect = (int32_T*)calloc(width, sizeof(int32_T));
-		break;
-	case SS_UINT32:   /* uint32_T  */
-		arg1->portInfo.outputs[port].signalVect = (uint32_T*)calloc(width, sizeof(uint32_T));
-		break;
-	case SS_BOOLEAN:  /* boolean_T */
-		arg1->portInfo.outputs[port].signalVect = (boolean_T*)calloc(width, sizeof(boolean_T));
-		break;
-	default:
-		arg1->portInfo.outputs[port].signalVect = (real_T*)calloc(width, sizeof(real_T));
-		break;
-	}
+	S->portInfo.outputs[port].signalVect = calloc(width, size);
 
 	return 1;
 }
@@ -548,58 +448,24 @@ void FreeModel(Model* model) {
 }
 
 void resetSimStructVectors(SimStruct *S) {
-	int_T i;
 
-	memset(S->states.contStates, 0, (S->sizes.numContStates + 1) * sizeof(real_T));
-	memset(S->states.dX, 0, (S->sizes.numContStates + 1) * sizeof(real_T));
-	memset(S->states.contStateDisabled, 0, (S->sizes.numContStates + 1) * sizeof(boolean_T));
-	memset(S->states.discStates, 0, (S->sizes.numDiscStates + 1) * sizeof(real_T));
-	memset(S->stInfo.sampleTimes, 0, (S->sizes.numSampleTimes + 1) * sizeof(time_T));
-	memset(S->stInfo.offsetTimes, 0, (S->sizes.numSampleTimes + 1) * sizeof(time_T));
-	memset(S->stInfo.sampleTimeTaskIDs, 0, (S->sizes.numSampleTimes + 1) * sizeof(int_T));
-	memset(S->mdlInfo->sampleHits, 0, (S->sizes.numSampleTimes*S->sizes.numSampleTimes + 1) * sizeof(int_T));
-	memset(S->mdlInfo->t, 0, (S->sizes.numSampleTimes + 1) * sizeof(time_T));
-	memset(S->work.modeVector, 0, (S->sizes.numModes + 1) * sizeof(int_T));
-	memset(S->work.iWork, 0, (S->sizes.numIWork + 1) * sizeof(int_T));
-	memset(S->work.pWork, 0, (S->sizes.numPWork + 1) * sizeof(void*));
-	memset(S->work.rWork, 0, (S->sizes.numRWork + 1) * sizeof(real_T));
-	memset(S->mdlInfo->solverInfo->zcSignalVector, 0, (SFCN_FMI_ZC_LENGTH + 1) * sizeof(real_T));
-	for (i = 0; i<S->sizes.numDWork; i++) {
-		switch (S->work.dWork.sfcn[i].dataTypeId) {
-		case SS_DOUBLE:   /* real_T    */
-			memset(S->work.dWork.sfcn[i].array, 0, (S->work.dWork.sfcn[i].width) * sizeof(real_T));
-			break;
-		case SS_SINGLE:   /* real32_T  */
-			memset(S->work.dWork.sfcn[i].array, 0, (S->work.dWork.sfcn[i].width) * sizeof(real32_T));
-			break;
-		case SS_INTEGER:  /* int_T */
-			memset(S->work.dWork.sfcn[i].array, 0, (S->work.dWork.sfcn[i].width) * sizeof(int_T));
-			break;
-		case SS_INT8:     /* int8_T    */
-			memset(S->work.dWork.sfcn[i].array, 0, (S->work.dWork.sfcn[i].width) * sizeof(int8_T));
-			break;
-		case SS_UINT8:    /* uint8_T   */
-			memset(S->work.dWork.sfcn[i].array, 0, (S->work.dWork.sfcn[i].width) * sizeof(uint8_T));
-			break;
-		case SS_INT16:    /* int16_T   */
-			memset(S->work.dWork.sfcn[i].array, 0, (S->work.dWork.sfcn[i].width) * sizeof(int16_T));
-			break;
-		case SS_UINT16:   /* uint16_T  */
-			memset(S->work.dWork.sfcn[i].array, 0, (S->work.dWork.sfcn[i].width) * sizeof(uint16_T));
-			break;
-		case SS_INT32:    /* int32_T   */
-			memset(S->work.dWork.sfcn[i].array, 0, (S->work.dWork.sfcn[i].width) * sizeof(int32_T));
-			break;
-		case SS_UINT32:   /* uint32_T  */
-			memset(S->work.dWork.sfcn[i].array, 0, (S->work.dWork.sfcn[i].width) * sizeof(uint32_T));
-			break;
-		case SS_BOOLEAN:  /* boolean_T */
-			memset(S->work.dWork.sfcn[i].array, 0, (S->work.dWork.sfcn[i].width) * sizeof(boolean_T));
-			break;
-		default:
-			memset(S->work.dWork.sfcn[i].array, 0, (S->work.dWork.sfcn[i].width) * sizeof(real_T));
-			break;
-		}
+	memset(S->states.contStates,                   0, (S->sizes.numContStates + 1)   * sizeof(real_T));
+	memset(S->states.dX,                           0, (S->sizes.numContStates + 1)   * sizeof(real_T));
+	memset(S->states.contStateDisabled,            0, (S->sizes.numContStates + 1)   * sizeof(boolean_T));
+	memset(S->states.discStates,                   0, (S->sizes.numDiscStates + 1)   * sizeof(real_T));
+	memset(S->stInfo.sampleTimes,                  0, (S->sizes.numSampleTimes + 1)  * sizeof(time_T));
+	memset(S->stInfo.offsetTimes,                  0, (S->sizes.numSampleTimes + 1)  * sizeof(time_T));
+	memset(S->stInfo.sampleTimeTaskIDs,            0, (S->sizes.numSampleTimes + 1)  * sizeof(int_T));
+	memset(S->mdlInfo->sampleHits,                 0, (S->sizes.numSampleTimes*S->sizes.numSampleTimes + 1) * sizeof(int_T));
+	memset(S->mdlInfo->t,                          0, (S->sizes.numSampleTimes + 1)  * sizeof(time_T));
+	memset(S->work.modeVector,                     0, (S->sizes.numModes + 1)        * sizeof(int_T));
+	memset(S->work.iWork,                          0, (S->sizes.numIWork + 1)        * sizeof(int_T));
+	memset(S->work.pWork,                          0, (S->sizes.numPWork + 1)        * sizeof(void*));
+	memset(S->work.rWork,                          0, (S->sizes.numRWork + 1)        * sizeof(real_T));
+	memset(S->mdlInfo->solverInfo->zcSignalVector, 0, (SFCN_FMI_ZC_LENGTH + 1)       * sizeof(real_T));
+	for (int_T i = 0; i < S->sizes.numDWork; i++) {
+		size_t typeSize = getCGTypeSize(S->work.dWork.sfcn[i].dataTypeId);
+		memset(S->work.dWork.sfcn[i].array, 0, (S->work.dWork.sfcn[i].width) * typeSize);
 	}
 }
 
