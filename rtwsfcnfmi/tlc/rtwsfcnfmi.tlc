@@ -33,7 +33,6 @@
 %assign GUID = FEVAL("makeGUID")
 %include "sfcnmei.tlc"
 
-%assign FMIVersion = "2"
 %assign SourceCodeFMU = 0
 %assign VisibleParameters = ""
 %%assign GUID = FEVAL("grtfmi_generate_guid")
@@ -94,11 +93,11 @@
   i = i + 1;
   rtwoptions(i).prompt         = 'FMI version:';
   rtwoptions(i).type           = 'Popup';
-  rtwoptions(i).default        = '2.0';
+  rtwoptions(i).default        = '2';
   rtwoptions(i).enable         = 'off';
   rtwoptions(i).tlcvariable    = 'FMIVersion';
   rtwoptions(i).makevariable   = 'FMI_VER';
-  rtwoptions(i).popupstrings   = '2.0';
+  rtwoptions(i).popupstrings   = '2';
   rtwoptions(i).tooltip        = 'Specify FMI version for the export';
 
   i = i + 1;
