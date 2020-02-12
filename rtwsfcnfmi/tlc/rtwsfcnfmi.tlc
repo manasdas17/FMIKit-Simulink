@@ -81,7 +81,7 @@
   rtwoptions(i).prompt        = 'FMI';
   rtwoptions(i).type          = 'Category';
   rtwoptions(i).enable        = 'on';  
-  rtwoptions(i).default       = 11;   % number of items under this category
+  rtwoptions(i).default       = 7;    % number of items under this category
                                       % excluding this one.
   rtwoptions(i).popupstrings  = '';
   rtwoptions(i).tlcvariable   = '';
@@ -127,36 +127,12 @@
     'Template directory with files and folders to be added to the FMU';
 
   i = i + 1;
-  rtwoptions(i).prompt         = 'Generate black-box FMU';
-  rtwoptions(i).type           = 'Checkbox';
-  rtwoptions(i).default        = 'off';
-  rtwoptions(i).tlcvariable    = 'BlackBoxFMU';
-  rtwoptions(i).makevariable   = '';
-  rtwoptions(i).tooltip        = 'Check this box to generate a black-box FMU, which only exposes inputs and outputs.';
-
-  i = i + 1;
-  rtwoptions(i).prompt         = 'Include block hierarchy in variable names';
-  rtwoptions(i).type           = 'Checkbox';
-  rtwoptions(i).default        = 'on';
-  rtwoptions(i).tlcvariable    = 'BlockHierarchyNames';
-  rtwoptions(i).makevariable   = '';
-  rtwoptions(i).tooltip        = 'Check this box to generate block-hierarchical variable names in the XML model description.';
-
-  i = i + 1;
   rtwoptions(i).prompt         = 'Include global block outputs';
   rtwoptions(i).type           = 'Checkbox';
   rtwoptions(i).default        = 'on';
   rtwoptions(i).tlcvariable    = 'IncludeBlockOutputs';
   rtwoptions(i).makevariable   = '';
   rtwoptions(i).tooltip        = 'Check this box to include global block outputs in the XML model description.';
-
-  i = i + 1;
-  rtwoptions(i).prompt         = 'Include discrete states (DWork)';
-  rtwoptions(i).type           = 'Checkbox';
-  rtwoptions(i).default        = 'on';
-  rtwoptions(i).tlcvariable    = 'IncludeDWork';
-  rtwoptions(i).makevariable   = '';
-  rtwoptions(i).tooltip        = 'Check this box to include discrete states and modes in the XML model description. This feature is mainly for debugging.';
 
   i = i + 1;
   rtwoptions(i).prompt         = 'Add image of Simulink model';
@@ -166,14 +142,6 @@
   rtwoptions(i).makevariable   = '';
   rtwoptions(i).tooltip        = ...
     'Add an image of the Simulink model to the FMU (model.png)';
-
-  i = i + 1;
-  rtwoptions(i).prompt         = 'Copy Simulink model to FMU resources';
-  rtwoptions(i).type           = 'Checkbox';
-  rtwoptions(i).default        = 'off';
-  rtwoptions(i).tlcvariable    = 'CopyModel';
-  rtwoptions(i).makevariable   = '';
-  rtwoptions(i).tooltip        = 'Check this box to copy the Simulink model to the FMU resources.';
 
   i = i + 1;
 if ispc
