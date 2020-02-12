@@ -30,12 +30,11 @@
 
 %include "codegenentry.tlc"
 %include "sfcnfmilib.tlc"
-%assign GUID = FEVAL("makeGUID")
+%assign GUID = FEVAL("grtfmi_generate_guid")
 %include "sfcnmei.tlc"
 
 %assign SourceCodeFMU = 0
 %assign VisibleParameters = ""
-%%assign GUID = FEVAL("grtfmi_generate_guid")
 %include "rtwsfcnfmilib.tlc"
 %include "rtwsfcnfmixml.tlc"
 
