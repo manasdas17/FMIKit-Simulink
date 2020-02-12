@@ -87,7 +87,6 @@
   rtwoptions(i).callback      = '';
   rtwoptions(i).opencallback  = '';
   rtwoptions(i).closecallback = '';
-  rtwoptions(i).makevariable  = '';
   
   i = i + 1;
   rtwoptions(i).prompt         = 'FMI version:';
@@ -95,7 +94,6 @@
   rtwoptions(i).default        = '2';
   rtwoptions(i).enable         = 'off';
   rtwoptions(i).tlcvariable    = 'FMIVersion';
-  rtwoptions(i).makevariable   = 'FMI_VER';
   rtwoptions(i).popupstrings   = '2';
   rtwoptions(i).tooltip        = 'Specify FMI version for the export';
 
@@ -104,7 +102,6 @@
   rtwoptions(i).type           = 'Popup';
   rtwoptions(i).default        = 'ModelExchange';
   rtwoptions(i).tlcvariable    = 'FMIType';
-  rtwoptions(i).makevariable   = 'FMI_TYPE';
   rtwoptions(i).popupstrings   = 'ModelExchange|CoSimulation';
   rtwoptions(i).tooltip        = 'Specify FMI type for the export (Model Exchange or Co-Simulation)';
 
@@ -113,7 +110,6 @@
   rtwoptions(i).type           = 'Edit';
   rtwoptions(i).default        = 'Unknown';
   rtwoptions(i).tlcvariable    = 'ModelAuthor';
-  rtwoptions(i).makevariable   = '';
   rtwoptions(i).tooltip        = 'Model author to be written in model description file (modelDescription.xml)';
 
   i = i + 1;
@@ -129,7 +125,6 @@
   rtwoptions(i).type           = 'Checkbox';
   rtwoptions(i).default        = 'on';
   rtwoptions(i).tlcvariable    = 'IncludeBlockOutputs';
-  rtwoptions(i).makevariable   = '';
   rtwoptions(i).tooltip        = 'Check this box to include global block outputs in the XML model description.';
 
   i = i + 1;
@@ -137,7 +132,6 @@
   rtwoptions(i).type           = 'Checkbox';
   rtwoptions(i).default        = 'on';
   rtwoptions(i).tlcvariable    = 'AddModelImage';
-  rtwoptions(i).makevariable   = '';
   rtwoptions(i).tooltip        = ...
     'Add an image of the Simulink model to the FMU (model.png)';
 
@@ -150,7 +144,6 @@ end
   rtwoptions(i).type           = 'Checkbox';
   rtwoptions(i).default        = 'off';
   rtwoptions(i).tlcvariable    = 'LoadBinaryMEX';
-  rtwoptions(i).makevariable   = 'FMI_LOAD_MEX';
   rtwoptions(i).tooltip        = ...
     ['Check this box to load internal S-functions from pre-compiled binary MEX files instead of using stand-alone compilation of S-function sources.'];
 
@@ -170,7 +163,6 @@ end
   rtwoptions(i).tlcvariable   = '';  % initialize all supported fields
   rtwoptions(i).tooltip       = '';
   rtwoptions(i).callback      = '';
-  rtwoptions(i).makevariable  = '';
 
   i = i + 1;
   rtwoptions(i).prompt        = 'CMake generator';
