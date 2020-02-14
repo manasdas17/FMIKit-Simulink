@@ -237,9 +237,10 @@ void initializeModelVariables(SimStruct* S, ModelVariable modelVariables[]) {
     %endif
   %endwith
 %% Continuous States
-
-    <!-- Continuous States -->
   %with ::CompiledModel.ContStates
+    %selectfile xmlfile
+  
+    <!-- Continuous States -->
     %foreach cstateid = NumContStates
       %assign cstate   = ContState[cstateid]
       %assign width    = LibGetRecordWidth(cstate)
