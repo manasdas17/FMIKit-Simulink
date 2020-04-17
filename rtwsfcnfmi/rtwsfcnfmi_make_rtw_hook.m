@@ -45,8 +45,7 @@ switch hookMethod
         end
         
         pathstr = which('rtwsfcnfmi.tlc');
-        [tlc_dir, ~, ~] = fileparts(pathstr);
-        [cmakelists_dir, ~, ~] = fileparts(tlc_dir);
+        [cmakelists_dir, ~, ~] = fileparts(pathstr);
         command = get_param(modelName, 'CMakeCommand');
         command = grtfmi_find_cmake(command);
         generator = get_param(modelName, 'CMakeGenerator');
