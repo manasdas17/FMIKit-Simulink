@@ -59,9 +59,9 @@ set(MODEL_SOURCES
   ../include/fmi2Functions.h
   ../include/fmi2FunctionTypes.h
   ../include/fmi2TypesPlatform.h
-  c/fmi2Functions.c
-  c/sfunction.h
-  c/sfunction.c
+  fmi2Functions.c
+  sfunction.h
+  sfunction.c
   "${RTW_DIR}/modelDescription.xml"
 )
 
@@ -76,7 +76,6 @@ add_library(${MODEL_NAME} SHARED
 
 target_include_directories(${MODEL_NAME} PRIVATE
   ../include
-  c
 )
 
 if (WIN32)
